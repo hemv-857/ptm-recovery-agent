@@ -1,0 +1,112 @@
+{
+  "report": {
+    "disclaimer": "Built as a concept for the Paytm Hackathon. Not an official Paytm product.",
+    "batch": {
+      "cases": 2000,
+      "amount_at_risk_paise": 1995807633,
+      "treatment_n": 1400,
+      "control_n": 600
+    },
+    "headline": {
+      "recovered_treatment_paise": 945344317,
+      "recovered_control_paise": 119021780,
+      "recovery_rate_treatment": 0.7064,
+      "recovery_rate_control": 0.2167,
+      "incremental_recovery_pp": 48.98,
+      "incremental_recovery_ci95_pp": [
+        44.86,
+        52.81
+      ],
+      "incremental_money_paise": 665842462,
+      "incremental_recoveries_est": 686,
+      "naive_recovery_rate": 0.5003
+    },
+    "cost": {
+      "spend_paise": 47212,
+      "contacts_executed": 3000,
+      "cost_by_channel_paise": {
+        "whatsapp": 28200,
+        "email": 1612,
+        "sms": 7500,
+        "voice": 9900
+      },
+      "cost_per_incremental_recovery_paise": 69,
+      "redundant_contact_share": 0.307,
+      "opt_outs": 21
+    },
+    "promises": {
+      "received": 279,
+      "kept": 164,
+      "keep_rate": 0.588,
+      "money_via_promises_paise": 188317975
+    },
+    "policy_transparency": {
+      "blocked_actions": {
+        "customer_opted_out": 19,
+        "attempt_cap_reached": 273
+      }
+    },
+    "per_class": {
+      "CUSTOMER_ABANDONMENT": {
+        "n": 200,
+        "treatment_rate": 0.507,
+        "control_rate": 0.117,
+        "lift_pp": 39.0
+      },
+      "HARD_DECLINE": {
+        "n": 140,
+        "treatment_rate": 0.378,
+        "control_rate": 0.095,
+        "lift_pp": 28.2
+      },
+      "INSUFFICIENT_FUNDS": {
+        "n": 520,
+        "treatment_rate": 0.797,
+        "control_rate": 0.288,
+        "lift_pp": 50.8
+      },
+      "INVOICE_OVERDUE": {
+        "n": 160,
+        "treatment_rate": 0.732,
+        "control_rate": 0.167,
+        "lift_pp": 56.5
+      },
+      "ISSUER_UNAVAILABLE": {
+        "n": 180,
+        "treatment_rate": 0.849,
+        "control_rate": 0.407,
+        "lift_pp": 44.2
+      },
+      "MANDATE_ISSUE": {
+        "n": 260,
+        "treatment_rate": 0.665,
+        "control_rate": 0.115,
+        "lift_pp": 54.9
+      },
+      "NETWORK_TIMEOUT": {
+        "n": 220,
+        "treatment_rate": 0.864,
+        "control_rate": 0.258,
+        "lift_pp": 60.6
+      },
+      "SOFT_DECLINE_OTHER": {
+        "n": 200,
+        "treatment_rate": 0.671,
+        "control_rate": 0.217,
+        "lift_pp": 45.5
+      },
+      "SUBSCRIPTION_FAILED": {
+        "n": 120,
+        "treatment_rate": 0.643,
+        "control_rate": 0.139,
+        "lift_pp": 50.4
+      }
+    },
+    "statistical_note": "95% CI via 2,000-rep percentile bootstrap, seeded for reproducibility. Treatment/control stratified by failure class at ingest. Naive baseline estimated from world-model parameters (organic + single retry)."
+  },
+  "classification": {
+    "accuracy": 1.0,
+    "n": 2000,
+    "top_confusions": {}
+  }
+}

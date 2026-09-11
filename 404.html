@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#002970">
+    <title>404 — Page Not Found</title>
+    <!-- air-gapped: system font stack only -->
+    <style>
+        /* Paytm web UI font: Inter (OFL) — same local copy served by /static mount */
+        @font-face{
+          font-family:'Inter';
+          font-style:normal;font-weight:100 900;font-stretch:normal;
+          src:url('/static/vendor/fonts/InterVariable.woff2') format('woff2-variations'),
+              url('/static/vendor/fonts/InterVariable.woff2') format('woff2');
+          font-display:swap;
+        }
+        :root{--bg:#0a0f1a;--txt:#f1f5f9;--sec:#94a3b8;--dim:#64748b;--blu:#00BAF2;--pur:#7FDBFF;--red:#E42352} /* Paytm cyan / light-cyan / crimson */
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes glitch{0%,100%{transform:translate(0)}20%{transform:translate(-2px,2px)}40%{transform:translate(2px,-1px)}60%{transform:translate(-1px,1px)}80%{transform:translate(1px,-2px)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes scanline{0%{top:-100%}100%{top:100%}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        .wrap{text-align:center;padding:40px}
+        .code{font-size:clamp(80px,15vw,160px);font-weight:900;line-height:1;background:linear-gradient(135deg,var(--red),var(--pur));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fadeUp .6s ease both;position:relative}
+        .code::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.03) 2px,rgba(255,255,255,.03) 4px);pointer-events:none}
+        .sub{font-size:clamp(16px,3vw,24px);color:var(--sec);margin:20px 0 10px;font-weight:600;animation:fadeUp .6s ease .15s both}
+        .desc{color:var(--dim);font-size:clamp(13px,2vw,16px);margin-bottom:36px;animation:fadeUp .6s ease .25s both}
+        .scan{position:fixed;top:-100%;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--blu),transparent);animation:scanline 4s linear infinite;opacity:.3}
+        .actions{display:flex;gap:12px;justify-content:center;animation:fadeUp .6s ease .35s both}
+        .btn{padding:12px 28px;border-radius:8px;font-weight:600;font-size:14px;text-decoration:none;cursor:pointer;transition:all .2s;font-family:inherit;border:none}
+        .btn-p{background:linear-gradient(135deg,var(--blu),#0084B4);color:#fff}
+        .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,186,242,.3)}
+        .btn-s{background:rgba(255,255,255,.06);color:var(--sec);border:1px solid rgba(255,255,255,.08)}
+        .btn-s:hover{background:rgba(255,255,255,.1)}
+        .terminal{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:16px 20px;max-width:420px;margin:0 auto 36px;font-family:ui-monospace,monospace;font-size:13px;color:var(--sec);text-align:left;animation:fadeUp .6s ease .3s both;line-height:1.7}
+        .terminal .p{color:var(--blu)}.terminal .e{color:var(--red)}.terminal .d{color:var(--dim)}.terminal .c{color:var(--pur);animation:blink 1s step-end infinite}
+        .disclaimer{margin-top:24px;font-size:9px;color:#888;font-style:italic;text-align:center;animation:fadeUp .6s ease .45s both}
+        .particles{position:fixed;inset:0;pointer-events:none;z-index:-1}
+        .p{position:absolute;width:3px;height:3px;background:var(--blu);border-radius:50%;animation:float 6s ease-in-out infinite}
+        @keyframes float{0%,100%{transform:translateY(0) rotate(0deg);opacity:.3}50%{transform:translateY(-20px) rotate(180deg);opacity:.8}}
+    </style>
+</head>
+<body>
+    <div class="scan"></div>
+    <div class="particles">
+        <div class="p" style="left:10%;top:20%;animation-delay:0s"></div>
+        <div class="p" style="left:80%;top:15%;animation-delay:1s;width:2px;height:2px"></div>
+        <div class="p" style="left:25%;top:70%;animation-delay:2s"></div>
+        <div class="p" style="left:70%;top:60%;animation-delay:.5s;width:2px;height:2px"></div>
+        <div class="p" style="left:50%;top:85%;animation-delay:1.5s"></div>
+        <div class="p" style="left:90%;top:40%;animation-delay:3s;width:4px;height:4px"></div>
+        <div class="p" style="left:15%;top:90%;animation-delay:2.5s"></div>
+    </div>
+    <div class="wrap">
+        <div class="code">404</div>
+        <div class="sub">Page not found</div>
+        <div class="desc">The endpoint you're looking for doesn't exist or wasn't registered.</div>
+        <div class="terminal">
+            <div><span class="p">$</span> curl -s /this-page-does-not-exist<span class="c">█</span></div>
+            <div><span class="e">404 Not Found</span></div>
+            <div class="d">{"error": "endpoint not registered"}</div>
+            <div class="d">{"hint": "try /docs for available routes"}</div>
+        </div>
+        <div class="actions">
+            <a class="btn btn-p" href="/">Dashboard</a>
+            <a class="btn btn-s" href="/docs">API Docs</a>
+            <a class="btn btn-s" href="/report">Report</a>
+        </div>
+        <p class="disclaimer">Built as a concept for the Paytm Hackathon. Not an official Paytm product.</p>
+    </div>
+</body>
+</html>

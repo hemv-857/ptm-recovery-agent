@@ -1,0 +1,37 @@
+{{- $tokenSecret := .Values.existingSecret | default (printf "%s-secrets" .Release.Name) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-ticker
+  labels:
+    app: paytm-recovery-agent
+    component: ticker
+spec:
+  replicas: 1                 # never scale: two tickers would double-contact customers
+  selector:
+    matchLabels:
+      app: paytm-recovery-agent
+      component: ticker
+  template:
+    metadata:
+      labels:
+        app: paytm-recovery-agent
+        component: ticker
+    spec:
+      containers:
+        - name: ticker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["sh", "-c"]
+          args:
+            - >-
+              while true; do
+              python -c 'import os, urllib.request; r = urllib.request.Request("http://{{ .Release.Name }}-api/tick", method="POST", headers={"X-Agent-Token": os.environ.get("AGENT_API_TOKEN", "")}); urllib.request.urlopen(r)' || true;
+              sleep 60;
+              done
+          env:
+            - name: AGENT_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $tokenSecret }}
+                  key: AGENT_API_TOKEN

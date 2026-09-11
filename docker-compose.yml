@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # operator endpoints stay open until you set this; send it as X-Agent-Token
+      AGENT_API_TOKEN: ${AGENT_API_TOKEN:-}
+      PAYMENT_PROCESSOR: ${PAYMENT_PROCESSOR:-paytm}
+      # Paytm
+      PAYTM_MERCHANT_ID: ${PAYTM_MERCHANT_ID:-}
+      PAYTM_MERCHANT_KEY: ${PAYTM_MERCHANT_KEY:-}
+      PAYTM_WEBHOOK_SECRET: ${PAYTM_WEBHOOK_SECRET:-}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+    volumes:
+      - paytm-data:/app/data
+
+  # cron replacement: hits /tick every minute so scheduled actions fire
+  ticker:
+    build: .
+    entrypoint: ["sh", "-c", "while true; do python -c 'import os, urllib.request; r = urllib.request.Request(\"http://api:8000/tick\", method=\"POST\", headers={\"X-Agent-Token\": os.environ.get(\"AGENT_API_TOKEN\", \"\")}); urllib.request.urlopen(r)' || true; sleep 60; done"]
+    environment:
+      AGENT_API_TOKEN: ${AGENT_API_TOKEN:-}
+    depends_on:
+      - api
+
+volumes:
+  paytm-data:

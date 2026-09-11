@@ -1,0 +1,68 @@
+{{- $tokenSecret := .Values.existingSecret | default (printf "%s-secrets" .Release.Name) }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-api
+  labels:
+    app: paytm-recovery-agent
+    component: api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: paytm-recovery-agent
+      component: api
+  template:
+    metadata:
+      labels:
+        app: paytm-recovery-agent
+        component: api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: RECOVERY_DB
+              value: /app/data/recovery.db
+            - name: AGENT_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $tokenSecret }}
+                  key: AGENT_API_TOKEN
+            {{- if .Values.paytm.keyId }}
+            - name: PAYTM_KEY_ID
+              value: {{ .Values.paytm.keyId | quote }}
+            {{- end }}
+            {{- if .Values.paytm.keySecret }}
+            - name: PAYTM_KEY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $tokenSecret }}
+                  key: PAYTM_KEY_SECRET
+            {{- end }}
+            {{- if .Values.paytm.webhookSecret }}
+            - name: PAYTM_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $tokenSecret }}
+                  key: PAYTM_WEBHOOK_SECRET
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /report
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data

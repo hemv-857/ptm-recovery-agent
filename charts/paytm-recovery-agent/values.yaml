@@ -1,0 +1,36 @@
+# Default values. Override with --set or -f prod-values.yaml.
+
+image:
+  repository: ghcr.io/OWNER/paytm-recovery-agent   # set to your published image
+  tag: latest
+  pullPolicy: IfNotPresent
+
+replicaCount: 1          # SQLite behind this; scale out only after moving to Postgres
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Operator endpoints (/tick, approvals, opt-outs) require this token as
+# X-Agent-Token. CHANGE IT — better: create the secret yourself and reference it.
+agentToken: ""
+existingSecret: ""       # secret key must be named AGENT_API_TOKEN
+
+# paytm test-mode keys + webhook secret go here (or your own secret).
+paytm:
+  keyId: ""
+  keySecret: ""
+  webhookSecret: ""
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi

@@ -1,0 +1,32 @@
+name: CI
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Lint
+        run: |
+          pip install ruff
+          ruff check .
+      - name: Offline batch smoke (500 cases)
+        run: |
+          python - <<'EOF'
+          import yaml
+          cfg = yaml.safe_load(open("config.yaml"))
+          cfg["simulation"]["batch_size"] = 500
+          yaml.safe_dump(cfg, open("config.yaml", "w"))
+          EOF
+          python scripts/run_batch.py
+      - run: python -m pytest tests -q

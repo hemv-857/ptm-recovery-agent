@@ -1,0 +1,68 @@
+# Insurance / Lending preset — compliance-heavy, human escalation.
+# Use with: RECOVERY_CONFIG=configs/templates/insurance_lending.yaml
+# Compliance first, fewer automated touches, early human escalation.
+policy:
+  max_attempts_per_case: 2
+  attempt_window_hours: 168
+  cooldown_minutes: 480
+  quiet_hours_ist: [21, 9]
+  auto_action_cap_paise: 500000   # Rs 5k: lower cap, compliance-first
+  final_followup_hours: 336
+  case_expiry_hours: 720
+
+channels:
+  sms:
+    cost_paise: 15
+    enabled: true
+  whatsapp:
+    cost_paise: 30
+    enabled: true
+  email:
+    cost_paise: 2
+    enabled: true
+  voice:
+    cost_paise: 300
+    enabled: true
+  payment_link:
+    cost_paise: 0
+
+retry:
+  network_timeout_backoff_min: 60
+  issuer_unavailable_backoff_min: 90
+  telecom_backoff_min: 60
+  salary_cycle_days: [1, 5, 10]
+  voice_min_amount_paise: 1000000
+
+world:
+  base_pay_probability:
+    INSUFFICIENT_FUNDS: 0.40
+    NETWORK_TIMEOUT: 0.50
+    ISSUER_UNAVAILABLE: 0.45
+    SOFT_DECLINE_OTHER: 0.30
+    HARD_DECLINE: 0.10
+    MANDATE_ISSUE: 0.35
+    CUSTOMER_ABANDONMENT: 0.25
+    INVOICE_OVERDUE: 0.45
+    SUBSCRIPTION_FAILED: 0.35
+    UNKNOWN: 0.20
+    KYC_INCOMPLETE: 0.10
+    UPI_LIMIT_EXCEEDED: 0.55
+    MANDATE_LAPSED: 0.25
+  control_baseline_scale: 0.55
+  channel_effectiveness:
+    whatsapp: 0.80
+    sms: 0.90
+    email: 0.60
+    payment_link: 0.85
+    voice: 0.75
+  fatigue_decay_per_contact: 0.70   # less fatigue: compliance-driven
+  opt_out_probability_per_contact: 0.008
+  promise_reply_probability: 0.20
+  promise_keep_probability: 0.60
+  salary_alignment_boost: 1.40
+  quiet_hour_penalty: 0.70
+  seed: 42
+
+simulation:
+  batch_size: 2000
+  horizon_days: 30

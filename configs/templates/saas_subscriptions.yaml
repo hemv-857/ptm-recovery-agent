@@ -1,0 +1,63 @@
+# SaaS subscription recovery preset (D2C subscriptions, failed renewals).
+# Use with: RECOVERY_CONFIG=configs/templates/saas_subscriptions.yaml
+policy:
+  max_attempts_per_case: 5          # subs are low-value/high-volume; gentler ladder, more touches
+  attempt_window_hours: 96
+  cooldown_minutes: 180             # shorter cycle — renewal windows are tight
+  quiet_hours_ist: [22, 8]
+  auto_action_cap_paise: 1000000    # Rs 10k cap: lower ticket sizes, auto-collect is safe
+  final_followup_hours: 168
+  case_expiry_hours: 336
+
+channels:
+  sms:
+    cost_paise: 15
+    enabled: true
+  whatsapp:
+    cost_paise: 30
+    enabled: true
+  email:
+    cost_paise: 2
+    enabled: true
+  voice:
+    cost_paise: 300                 # voice rarely pays for itself on small tickets
+    enabled: false
+  payment_link:
+    cost_paise: 0
+
+retry:
+  network_timeout_backoff_min: 20
+  issuer_unavailable_backoff_min: 45
+  salary_cycle_days: []             # renewals bill on anniversary dates, not salary cycles
+  voice_min_amount_paise: 2500000
+
+world:                              # simulator only
+  base_pay_probability:
+    INSUFFICIENT_FUNDS: 0.50
+    NETWORK_TIMEOUT: 0.65
+    ISSUER_UNAVAILABLE: 0.60
+    SOFT_DECLINE_OTHER: 0.40
+    HARD_DECLINE: 0.06
+    MANDATE_ISSUE: 0.32
+    CUSTOMER_ABANDONMENT: 0.22
+    INVOICE_OVERDUE: 0.38
+    SUBSCRIPTION_FAILED: 0.30
+    UNKNOWN: 0.25
+  control_baseline_scale: 0.55
+  channel_effectiveness:
+    whatsapp: 1.0
+    sms: 0.85
+    email: 0.55
+    payment_link: 0.9
+    voice: 0.72
+  fatigue_decay_per_contact: 0.82
+  opt_out_probability_per_contact: 0.012
+  promise_reply_probability: 0.18
+  promise_keep_probability: 0.55
+  salary_alignment_boost: 1.35
+  quiet_hour_penalty: 0.6
+  seed: 42
+
+simulation:
+  batch_size: 2000
+  horizon_days: 7

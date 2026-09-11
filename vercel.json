@@ -1,0 +1,44 @@
+{
+  "outputDirectory": ".",
+  "framework": null,
+  "installCommand": "echo done",
+  "buildCommand": "echo done",
+  "headers": [
+    {
+      "source": "/(.*) 일반자금대출",
+      "headers": [
+        {
+          "key": "X-Hackathon-Disclaimer",
+          "value": "Built as a concept for the Paytm Hackathon. Not an official Paytm product."
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/static/(.*)", "destination": "/static/$1" },
+    { "source": "/report/baseline", "destination": "https://paytm-recovery-agent.onrender.com/report/baseline" },
+    { "source": "/report", "destination": "https://paytm-recovery-agent.onrender.com/report" },
+    { "source": "/cases/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/cases/$1" },
+    { "source": "/security/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/security/$1" },
+    { "source": "/analytics/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/analytics/$1" },
+    { "source": "/budget", "destination": "https://paytm-recovery-agent.onrender.com/budget" },
+    { "source": "/incidents", "destination": "https://paytm-recovery-agent.onrender.com/incidents" },
+    { "source": "/approval/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/approval/$1" },
+    { "source": "/calculator(.*)", "destination": "https://paytm-recovery-agent.onrender.com/calculator$1" },
+    { "source": "/batch/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/batch/$1" },
+    { "source": "/inbound/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/inbound/$1" },
+    { "source": "/tick", "destination": "https://paytm-recovery-agent.onrender.com/tick" },
+    { "source": "/docs", "destination": "https://paytm-recovery-agent.onrender.com/docs" },
+    { "source": "/openapi.json", "destination": "https://paytm-recovery-agent.onrender.com/openapi.json" },
+    { "source": "/ws/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/ws/$1" },
+    { "source": "/audit/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/audit/$1" },
+    { "source": "/preview/whatsapp(.*)", "destination": "https://paytm-recovery-agent.onrender.com/preview/whatsapp$1" },
+    { "source": "/currency/convert(.*)", "destination": "https://paytm-recovery-agent.onrender.com/currency/convert$1" },
+    { "source": "/diagnose(.*)", "destination": "https://paytm-recovery-agent.onrender.com/diagnose$1" },
+    { "source": "/demo/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/demo/$1" },
+    { "source": "/stream/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/stream/$1" },
+    { "source": "/merchant/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/merchant/$1" },
+    { "source": "/provider(.*)", "destination": "https://paytm-recovery-agent.onrender.com/provider$1" },
+    { "source": "/settings(.*)", "destination": "https://paytm-recovery-agent.onrender.com/settings$1" }
+  ]
+}

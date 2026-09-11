@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.db
+*.db-shm
+*.db-wal
+.pytest_cache/
+.DS_Store
+.env
+.vercel
+.ruff_cache
+test-page/
+evaluation_report.json
+heldout_evaluation.json
+sensitivity_report.json
+data/

@@ -1,0 +1,12 @@
+# Lint config. `ruff check .` must pass — enforced in CI.
+line-length = 100
+
+[lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM", "RUF", "C4", "EXE", "PYI"]
+# BLE001/S110: deliberate — optional-LLM and report paths are fallback-by-design;
+# any failure there degrades to the deterministic path, never crashes the loop.
+ignore = ["BLE001", "S110"]
+
+[lint.per-file-ignores]
+"tests/*" = ["SIM115"]        # open("config.yaml") in fixtures is fine
+"scripts/*" = ["E402"]        # sys.path.insert before imports is the point

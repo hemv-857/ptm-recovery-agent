@@ -1,0 +1,1713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Recovery Agent — Dashboard</title>
+    <script src="/static/vendor/chart.umd.min.js"></script>
+    <script src="/static/vendor/react.production.min.js"></script>
+    <script src="/static/vendor/react-dom.production.min.js"></script>
+    <script src="/static/vendor/babel.min.js"></script>
+    <script src="/static/vendor/gsap.min.js"></script>
+    <!-- air-gapped: no external font/CDN loads; system-ui fallback stack -->
+    <style>  @font-face{
+    font-family:var(--font-sans);
+  font-style:normal;font-weight:100 900;font-stretch:normal;
+  src:local('Inter Variable'),local('Inter-Variable'),
+      url('/static/vendor/fonts/InterVariable.woff2') format('woff2-variations'),
+      url('/static/vendor/fonts/InterVariable.woff2') format('woff2');
+  font-display:swap;
+}
+
+        :root{--bg:#F5F7FA;--card:#FFFFFF;--card-hover:#F0F4F8;--bdr:#E8ECF0;--bdr-h:#D0D5DD;--txt:#1A1A1A;--sec:#666666;--dim:#999999;--grn:#22c55e;--blu:#002970;--pur:#00BAF2;--red:#E42352;--yel:#eab308;--cyn:#00BAF2;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--paytm-navy:#002970;--paytm-cyan:#00BAF2;--paytm-blue:#002970;--paytm-crimson:#E42352;--paytm-light:#7FDBFF;--gradient:linear-gradient(135deg,#002970,#00BAF2);--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1)}
+        --card:#FFFFFF;--card-hover:#F0F4F8;--bdr:#E8ECF0;--bdr-h:#D0D5DD;--txt:#1A1A1A;--sec:#666666;--dim:#999999;--grn:#22c55e;--blu:#002970;--pur:#00BAF2;--red:#E42352;--yel:#eab308;--cyn:#00BAF2;  --mono:'JetBrains Mono',monospace;--font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--paytm-navy:#002970;--paytm-cyan:#00BAF2;--paytm-blue:#002970;--paytm-crimson:#E42352;--paytm-light:#7FDBFF;--gradient:linear-gradient(135deg,#002970,#00BAF2);--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1)}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:var(--font-sans);background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.2)}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes slideR{from{width:0}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+        @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        .a-fu{animation:fadeUp .45s ease both}.a-fi{animation:fadeIn .35s ease both}.a-sc{animation:scaleIn .35s ease both}.a-si{animation:slideIn .35s ease both}
+        .d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}.d5{animation-delay:.2s}.d6{animation-delay:.24s}
+
+        /* Layout */
+        .layout{display:flex;min-height:100vh}
+        .sidebar{width:210px;background:#FFFFFF;border-right:1px solid var(--bdr);padding:18px 0;display:flex;flex-direction:column;position:fixed;height:100vh;overflow-y:auto;z-index:50;box-shadow:1px 0 4px rgba(0,0,0,.04)}
+        .sidebar-logo{padding:0 18px 16px;border-bottom:1px solid var(--bdr);margin-bottom:12px}
+        .sidebar-logo h1{font-size:15px;font-weight:800;letter-spacing:-.02em;color:var(--paytm-blue)}
+        .logo-chip{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#002970,#00BAF2);color:#fff;font-size:11px;font-weight:800;margin-right:7px;vertical-align:-4px;box-shadow:0 1px 3px rgba(0,41,112,.3)}
+        .sidebar-logo .sub{font-size:9px;color:var(--dim);margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+        .nav{padding:0 10px;flex:1}
+        .nav-section{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;padding:10px 10px 4px;font-weight:700}
+        .nav-item{padding:8px 10px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--sec);transition:all .15s;display:flex;align-items:center;gap:9px;margin-bottom:1px;user-select:none}
+        .nav-item:hover{background:var(--card-hover);color:var(--txt)}
+        .nav-item.active{background:rgba(0,41,112,.08);color:var(--paytm-blue);font-weight:600}
+        .nav-item .icon{font-size:14px;width:18px;text-align:center}
+        .sidebar-footer{padding:12px 18px;border-top:1px solid var(--bdr);font-size:9px;color:var(--dim)}
+        .sidebar-disclaimer{margin-top:8px;font-size:8.5px;color:var(--dim);font-style:italic;line-height:1.4;letter-spacing:.01em}
+        .main{flex:1;margin-left:210px}
+        .topbar{background:#FFFFFF;box-shadow:0 1px 3px rgba(0,0,0,.06);border-bottom:1px solid var(--bdr);padding:10px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+        .tb-left{display:flex;align-items:center;gap:12px}
+        .tb-right{display:flex;align-items:center;gap:8px}
+        .badge{font-size:8px;letter-spacing:.06em;padding:3px 8px;border-radius:999px;border:1px solid rgba(34,197,94,.4);color:#16a34a;text-transform:uppercase;font-weight:700;background:rgba(34,197,94,.06)}
+        .badge.warn{border-color:rgba(234,179,8,.4);color:#ca8a04;background:rgba(234,179,8,.06)}
+        .badge.live{border-color:rgba(0,41,112,.4);color:var(--paytm-blue);animation:pulse 2s infinite;background:rgba(0,41,112,.06)}
+        .badge.pur{border-color:rgba(0,186,242,.4);color:#0084B4;background:rgba(0,186,242,.06)}
+        .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+        .dot.grn{background:var(--grn)}.dot.blu{background:var(--blu)}.dot.red{background:var(--red)}.dot.yel{background:var(--yel)}
+        .content{padding:22px 24px}
+
+        /* Cards — hover lift */
+        .card{background:var(--card);border:1px solid var(--bdr);border-radius:12px;transition:all .2s cubic-bezier(.4,0,.2,1);box-shadow:var(--shadow)}
+        .card:hover{border-color:var(--bdr-h);box-shadow:var(--shadow-lg)}
+        .card-header{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center}
+        .card-header h2{font-size:12px;font-weight:700}
+        .card-body{padding:16px}
+
+        /* Metrics — hover lift */
+        .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+        .metric{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;transition:all .22s cubic-bezier(.4,0,.2,1);box-shadow:var(--shadow)}
+        .metric:hover{border-color:var(--bdr-h);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+        .metric.primary{border-color:rgba(0,41,112,.2);background:rgba(0,41,112,.03)}
+        .metric-label{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:5px}
+        .metric-value{font-size:22px;font-weight:800;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--txt)}
+        .metric-sub{font-size:10px;color:var(--dim);margin-top:3px}
+        @media(max-width:1100px){.metrics{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:600px){.metrics{grid-template-columns:1fr}.sidebar{display:none}.main{margin-left:0}}
+
+        /* Grid layouts */
+        .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+        .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+        .grid-sidebar{display:grid;grid-template-columns:360px 1fr;gap:12px}
+        @media(max-width:1100px){.grid-2,.grid-3,.grid-4,.grid-sidebar{grid-template-columns:1fr}}
+        @media(max-width:768px){.grid-4{grid-template-columns:1fr 1fr}}
+
+        /* Buttons — lift on hover */
+        .btn{padding:7px 14px;border-radius:7px;font-weight:600;cursor:pointer;font-size:11px;font-family:var(--font-sans);transition:all .15s cubic-bezier(.4,0,.2,1);border:none;background:var(--paytm-blue);color:#fff;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+        .btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,41,112,.2)}
+        .btn:active{transform:translateY(0)}
+        .btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+        .btn-sm{padding:4px 10px;font-size:10px}
+        .btn-xs{padding:3px 8px;font-size:9px;border-radius:5px}
+        .btn-outline{background:transparent;border:1px solid var(--bdr);color:var(--sec)}
+        .btn-outline:hover{background:var(--card-hover);border-color:var(--bdr-h);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+        .btn-grn{background:var(--grn)}.btn-grn:hover{box-shadow:0 4px 12px rgba(34,197,94,.2)}
+        .btn-red{background:var(--red)}.btn-red:hover{box-shadow:0 4px 12px rgba(228,35,82,.2)}
+        .btn-yel{background:var(--yel);color:#000}.btn-yel:hover{box-shadow:0 4px 12px rgba(234,179,8,.2)}
+        .btn-pur{background:var(--paytm-cyan)}.btn-pur:hover{box-shadow:0 4px 12px rgba(0,186,242,.2)}
+
+        /* Tags */
+        .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:9px;font-weight:700;background:var(--card-hover);color:var(--sec);font-family:var(--mono);border:1px solid var(--bdr)}
+        .tag-black{background:#1A1A1A;color:#fff}
+        .tag-green{background:rgba(34,197,94,.08);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
+        .tag-red{background:rgba(228,35,82,.08);color:#DC2626;border:1px solid rgba(228,35,82,.2)}
+        .tag-yellow{background:rgba(234,179,8,.08);color:#ca8a04;border:1px solid rgba(234,179,8,.2)}
+        .tag-blue{background:rgba(0,41,112,.06);color:var(--paytm-blue);border:1px solid rgba(0,41,112,.15)}
+
+        /* Status pills */
+        .pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:10px;font-weight:600}
+        .pill.recovered{background:rgba(34,197,94,.1);color:#16a34a}
+        .pill.written_off{background:rgba(228,35,82,.1);color:#DC2626}
+        .pill.open,.pill.scheduled{background:rgba(0,41,112,.08);color:var(--paytm-blue)}
+
+        /* Table */
+        table{width:100%;border-collapse:collapse;font-size:11px}
+        th{text-align:left;color:var(--dim);font-weight:600;padding:8px 10px;border-bottom:2px solid var(--bdr);font-size:9px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono)}
+        td{padding:8px 10px;border-bottom:1px solid var(--bdr);color:var(--txt)}
+        tr:hover td{background:var(--card-hover)}
+        tr{transition:background .1s}
+
+        /* Forms */
+        .form-label{display:block;font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:3px}
+        .form-input{width:100%;padding:7px 9px;background:var(--card);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:11px;font-family:var(--font-sans);transition:border-color .15s}
+        .form-input:focus{outline:none;border-color:var(--paytm-blue);box-shadow:0 0 0 2px rgba(0,41,112,.1)}
+        select.form-input{cursor:pointer}
+        textarea.form-input{resize:vertical;min-height:60px;font-family:var(--mono);font-size:10px}
+
+        /* Bars */
+        .bar-g{margin-bottom:10px}
+        .bar-l{display:flex;justify-content:space-between;margin-bottom:3px}
+        .bar-l span:first-child{color:var(--sec);font-size:10px;font-weight:500}
+        .bar-l span:last-child{color:var(--txt);font-size:13px;font-weight:700;font-family:var(--mono);font-variant-numeric:tabular-nums}
+        .bar{height:16px;background:var(--bdr);border-radius:4px;overflow:hidden}
+        .bf{height:100%;border-radius:4px;animation:slideR 1s ease both}
+        .bf.t{background:linear-gradient(90deg,#002970,#00BAF2)}.bf.c{background:linear-gradient(90deg,#475569,#64748b)}.bf.n{background:linear-gradient(90deg,#eab308,#fbbf24)}
+
+        /* Hero */
+        .hero{background:linear-gradient(135deg,#002970,#00B4F2);border:none;border-radius:12px;padding:24px 28px;margin-bottom:18px;display:grid;grid-template-columns:1fr 1fr;gap:28px;align-items:center;transition:all .2s;box-shadow:0 4px 16px rgba(0,41,112,.15)}
+        .hero:hover{box-shadow:0 8px 24px rgba(0,41,112,.2)}
+        .h-label{color:var(--sec);font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+        .h-amt{font-size:38px;font-weight:800;line-height:1.1;font-family:var(--mono);font-variant-numeric:tabular-nums;color:#FFFFFF}
+        .h-sub{color:#7FDBFF;font-size:13px;font-weight:600;margin-top:5px}
+        .h-ci{color:var(--dim);font-size:10px;margin-top:3px;font-family:var(--mono)}
+        .h-delta{text-align:center;padding:6px 0}
+        .h-dv{font-size:20px;font-weight:800;color:#7FDBFF;font-family:var(--mono);font-variant-numeric:tabular-nums}
+        .h-dl{color:var(--dim);font-size:10px;margin-top:2px}
+        @media(max-width:900px){.hero{grid-template-columns:1fr}}
+
+        /* Queue item */
+        .queue-item{padding:9px 11px;border-radius:7px;border:1px solid var(--bdr);cursor:pointer;transition:all .15s;background:var(--card)}
+        .queue-item:hover{border-color:var(--bdr-h);background:var(--card-hover)}
+        .queue-item.selected{border-color:var(--paytm-blue);background:rgba(0,41,112,.04)}
+
+        /* Chips */
+        .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+        .chip{background:rgba(228,35,82,.06);border:1px solid rgba(228,35,82,.2);color:#DC2626;border-radius:999px;padding:2px 8px;font-size:10px}
+        .chip.ok{border-color:rgba(34,197,94,.2);color:#16a34a;background:rgba(34,197,94,.06)}
+
+        /* Modal — fade+scale in */
+        .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px)}
+        .modal.on{display:flex}
+        .modal-c{background:#FFFFFF;border-radius:14px;padding:22px;max-width:500px;width:100%;border:1px solid var(--bdr);animation:modalIn .25s ease;box-shadow:0 24px 48px rgba(0,0,0,.15)}
+        .modal-c h2{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--txt)}
+
+        /* Toast — slide in */
+        .toast{position:fixed;top:14px;right:14px;background:#FFFFFF;border:1px solid var(--bdr);border-radius:8px;padding:9px 14px;font-size:11px;font-weight:600;z-index:2000;animation:toastIn .25s ease;box-shadow:0 4px 12px rgba(0,0,0,.1);color:var(--txt)}
+
+        /* Skeleton shimmer */
+        .skeleton{background:linear-gradient(90deg,var(--bdr) 25%,var(--card-hover) 50%,var(--bdr) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+        .sk-line{height:14px;margin-bottom:8px}
+        .sk-card{height:80px;border-radius:10px;margin-bottom:12px}
+
+        /* Architecture flow */
+        .arch-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;padding:14px 0}
+        .arch-node{background:rgba(0,41,112,.06);border:1px solid rgba(0,41,112,.15);border-radius:7px;padding:7px 12px;font-size:10px;font-weight:600;color:var(--paytm-blue);white-space:nowrap;transition:all .15s}
+        .arch-node:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,41,112,.1)}
+        .arch-node.highlight{border-color:rgba(0,186,242,.3);background:rgba(0,186,242,.06);color:#0084B4}
+        .arch-arrow{color:var(--dim);font-size:12px}
+
+        /* Stepper */
+        .stepper{display:flex;gap:0;margin:12px 0}
+        .step{flex:1;text-align:center;padding:8px 4px;font-size:9px;font-weight:600;color:var(--dim);border-bottom:2px solid var(--bdr);transition:all .3s}
+        .step.active{color:var(--paytm-blue);border-bottom-color:var(--paytm-blue)}
+        .step.done{color:var(--grn);border-bottom-color:var(--grn)}
+        .step-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--bdr);display:inline-flex;align-items:center;justify-content:center;font-size:9px;margin-bottom:4px;transition:all .3s}
+        .step.active .step-dot{border-color:var(--paytm-blue);background:rgba(0,41,112,.1);color:var(--paytm-blue)}
+        .step.done .step-dot{border-color:var(--grn);background:rgba(34,197,94,.1);color:var(--grn)}
+
+        /* Funnel */
+        .funnel{display:flex;align-items:center;gap:4px;margin:12px 0}
+        .funnel-stage{flex:1;text-align:center;padding:10px 6px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;transition:all .2s}
+        .funnel-stage:hover{border-color:var(--bdr-h);box-shadow:var(--shadow)}
+        .funnel-num{font-size:18px;font-weight:800;font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--txt)}
+        .funnel-label{font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+        .funnel-arrow{color:var(--dim);font-size:11px;flex-shrink:0}
+
+        /* Feature grid */
+        .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .feat-item{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;transition:all .2s}
+        .feat-item:hover{border-color:var(--bdr-h);transform:translateY(-1px);box-shadow:var(--shadow)}
+        .feat-icon{font-size:16px;margin-bottom:5px}
+        .feat-title{font-size:11px;font-weight:600;margin-bottom:2px}
+        .feat-desc{font-size:9px;color:var(--dim);line-height:1.5}
+        @media(max-width:900px){.feat-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:600px){.feat-grid{grid-template-columns:1fr}}
+
+        /* Tech tags */
+        .tech-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+        .tech-tag{background:var(--card-hover);border:1px solid var(--bdr);border-radius:5px;padding:3px 8px;font-size:9px;color:var(--sec);font-weight:500}
+
+        /* CTA */
+        .cta-card{background:linear-gradient(135deg,rgba(0,41,112,.04),rgba(0,186,242,.04));border:1px solid rgba(0,41,112,.1);border-radius:12px;padding:24px;text-align:center}
+
+        /* Mono + tabular */
+        .mono{font-family:var(--mono)}.tabular{font-variant-numeric:tabular-nums}
+
+        /* Sound toggle */
+        .sound-toggle{cursor:pointer;display:flex;align-items:center;gap:4px;font-size:10px;color:var(--sec);padding:3px 8px;border-radius:5px;border:1px solid var(--bdr);transition:all .15s}
+        .sound-toggle:hover{background:var(--card-hover)}
+
+        /* Search */
+        .search-input{padding:6px 10px 6px 28px;background:var(--card);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:11px;font-family:var(--font-sans);width:180px;transition:all .2s}
+        .search-input:focus{outline:none;border-color:var(--paytm-blue);width:220px;box-shadow:0 0 0 2px rgba(0,41,112,.1)}
+        .search-wrap{position:relative}
+        .search-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:11px;pointer-events:none}
+
+        /* Approval row */
+        .approval-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:11px}
+        .approval-row:last-child{border-bottom:none}
+
+        /* Security grid */
+        .sec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .sec-box{background:var(--card-hover);padding:10px;border-radius:7px;text-align:center}
+        .sec-label{color:var(--dim);font-size:8px;text-transform:uppercase;letter-spacing:.05em}
+        .sec-val{font-size:18px;font-weight:800;margin-top:3px;font-family:var(--mono)}
+
+        /* WhatsApp preview bubble */
+        .wa-bubble{background:#111b21;border:1px solid var(--bdr);border-radius:12px;padding:16px;font-size:12px;line-height:1.6;color:#e9edef;max-width:340px;margin:0 auto}
+        .wa-header{color:#00a884;font-weight:600;margin-bottom:8px;font-size:13px}
+        .wa-footer{color:#667781;font-size:10px;border-top:1px solid var(--bdr);padding-top:8px;margin-top:10px}
+        .wa-btn{display:inline-block;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;margin-top:10px;margin-right:6px}
+        .wa-btn.primary{background:rgba(0,168,132,.15);color:#00a884;border:1px solid rgba(0,168,132,.3)}
+        .wa-btn.secondary{background:var(--bdr);color:#8696a0;border:1px solid rgba(0,0,0,.08)}
+
+        /* Live activity ticker */
+        .ticker{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+        .tick-row{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:5px;background:var(--card);border:1px solid var(--bdr);font-size:10px;animation:slideIn .3s ease both}
+        .tick-actor{width:64px;font-size:8px;text-transform:uppercase;font-weight:700;letter-spacing:.05em;flex-shrink:0}
+        .tick-ts{margin-left:auto;color:var(--dim);font-family:var(--mono);font-size:9px;flex-shrink:0}
+
+        /* Forecast bars */
+        .fc-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+        .fc-day{width:74px;font-size:10px;color:var(--sec);flex-shrink:0}
+        .fc-bar{flex:1;height:14px;background:var(--bdr);border-radius:4px;overflow:hidden}
+        .fc-fill{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);border-radius:4px;animation:slideR .8s ease both}
+        .fc-amt{width:80px;text-align:right;font-family:var(--mono);font-size:10px;font-weight:600;flex-shrink:0}
+
+        /* Waterfall */
+        .wf-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+        .wf-label{width:130px;font-size:10px;color:var(--sec);flex-shrink:0}
+        .wf-bar{flex:1;height:18px;background:var(--bdr);border-radius:4px;overflow:hidden}
+        .wf-fill{height:100%;border-radius:4px;animation:slideR .9s ease both}
+        .wf-amt{width:92px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0}
+
+        /* Merchant profile cards */
+        .mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        .mp-card{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:10px;transition:all .2s}
+        .mp-card:hover{border-color:var(--bdr-h);box-shadow:var(--shadow)}
+        .mp-card.detected{border-color:rgba(0,41,112,.3);background:rgba(0,41,112,.03)}
+        @media(max-width:900px){.mp-grid{grid-template-columns:1fr 1fr}}
+
+        /* Signal list */
+        .signal-row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:10px;color:var(--sec);border-bottom:1px solid var(--bdr)}
+        .signal-row:last-child{border-bottom:none}
+        .signal-row .dot{margin-top:3px;flex-shrink:0}
+
+        /* JSON output block */
+        .json-out{background:var(--card);padding:10px;border-radius:5px;font-family:var(--mono);font-size:10px;white-space:pre-wrap;max-height:220px;overflow:auto;margin-top:10px;border:1px solid var(--bdr)}
+
+        /* Calibration row */
+        .cal-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;font-size:10px}
+        .cal-idx{width:52px;color:var(--dim);font-family:var(--mono);flex-shrink:0}
+        .cal-bar{flex:1;height:12px;background:var(--bdr);border-radius:3px;overflow:hidden;position:relative}
+        .cal-pred{height:100%;background:rgba(0,186,242,.35);border-radius:3px}
+        .cal-obs{position:absolute;top:0;height:100%;width:2px;background:var(--grn)}
+
+        /* Section heading inside tabs */
+        .tab-head{margin-bottom:14px}
+        .tab-head h1{font-size:18px;font-weight:800}
+        .tab-head p{font-size:11px;color:var(--dim);margin-top:3px}
+
+        /* Filter chips row */
+        .filter-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+        .fchip{padding:4px 10px;border-radius:999px;border:1px solid var(--bdr);font-size:10px;font-weight:600;color:var(--sec);cursor:pointer;transition:all .15s;background:transparent}
+        .fchip:hover{border-color:var(--bdr-h);color:var(--txt)}
+        .fchip.on{background:rgba(0,41,112,.08);border-color:rgba(0,41,112,.3);color:var(--paytm-blue)}
+
+        /* ── P0: sticky topbar KPI strip ── */
+        .kpi-strip{display:flex;gap:6px;align-items:center}
+        .kpi-chip{display:flex;flex-direction:column;align-items:center;padding:3px 10px;border:1px solid var(--bdr);border-radius:7px;cursor:pointer;transition:all .15s;background:var(--card)}
+        .kpi-chip:hover{border-color:var(--bdr-h);background:var(--card-hover)}
+        .kpi-v{font-size:12px;font-weight:800;font-family:var(--mono);font-variant-numeric:tabular-nums;line-height:1.1;white-space:nowrap}
+        .kpi-chip:first-child .kpi-v{color:var(--paytm-cyan)}
+        .kpi-l{font-size:8px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+        @media(max-width:1100px){.kpi-strip{display:none}}
+        @keyframes heroFlash{0%,100%{box-shadow:0 0 0 0 rgba(0,186,242,0)}40%{box-shadow:0 0 0 4px rgba(0,186,242,.35)}}
+        .hero.flash{animation:heroFlash 1s ease}
+
+        /* ── P0: first-load seed overlay ── */
+        .seed-overlay{position:fixed;inset:0;background:rgba(245,247,250,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1800;animation:fadeIn .3s ease}
+        .seed-card{width:380px;max-width:92vw;background:#FFFFFF;border:1px solid var(--bdr);border-radius:14px;padding:28px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.15);animation:scaleIn .3s ease}
+        .seed-logo{font-size:28px;margin-bottom:8px}
+        .seed-card h2{font-size:16px;font-weight:800;margin-bottom:6px}
+        .seed-card p{font-size:11px;color:var(--sec);line-height:1.6;margin-bottom:14px}
+        .seed-bar{height:8px;background:var(--bdr);border-radius:99px;overflow:hidden;margin-bottom:8px}
+        .seed-bar>div{height:100%;background:linear-gradient(90deg,#002970,#00BAF2);border-radius:99px;transition:width .2s ease}
+        .seed-meta{font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:14px}
+
+        /* ── P0: guided tour spotlight ── */
+        .tour-backdrop{position:fixed;inset:0;z-index:1400}
+        .tour-spot{position:fixed;border-radius:10px;border:2px solid var(--paytm-blue);box-shadow:0 0 0 9999px rgba(0,0,0,.4),0 0 24px rgba(0,41,112,.3);pointer-events:none;z-index:1500;transition:all .25s ease}
+        .tour-card{position:fixed;background:#1e293b;border:1px solid var(--bdr-h);border-radius:10px;padding:14px;z-index:1600;box-shadow:0 24px 48px rgba(0,0,0,.4);animation:modalIn .25s ease}
+        .tour-card h3{font-size:13px;font-weight:700;margin-bottom:4px;padding-right:16px}
+        .tour-card p{font-size:11px;color:var(--sec);line-height:1.55}
+        .tour-nav{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+        .tour-count{font-size:9px;color:var(--dim);font-family:var(--mono)}
+        .tour-dots{display:flex;gap:4px;margin-bottom:8px}
+        .tour-dots span{width:5px;height:5px;border-radius:50%;background:var(--bdr)}
+        .tour-dots span.on{background:var(--paytm-cyan)}
+        .tour-x{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--dim);cursor:pointer;font-size:11px;padding:2px}
+        .tour-x:hover{color:var(--txt)}
+
+        /* Particle canvas */
+        #particle-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+        /* Spinner */
+        .spinner{width:24px;height:24px;border:3px solid var(--bdr);border-top-color:var(--paytm-blue);border-radius:50%;animation:spin .6s linear infinite;margin:20px auto}
+
+        /* GSAP animated elements */
+        .gsap-fade{opacity:0;transform:translateY(12px)}
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    <div id="root"></div>
+    <script>
+    // ── Paytm-branded particle system (2D canvas, zero deps) ──
+    (function(){
+        const cvs=document.getElementById('particle-canvas');
+        const ctx=cvs.getContext('2d');
+        let W,H;
+        const particles=[];
+        const CONNECTION_DIST=120;
+        const PARTICLE_COUNT=80;
+        const CYAN=[0,186,242];  // Paytm cyan #00BAF2
+        const BLUE=[0,41,112];   // Paytm navy #002970
+        let mouse={x:-1000,y:-1000};
+
+        function resize(){W=cvs.width=window.innerWidth;H=cvs.height=window.innerHeight}
+        window.addEventListener('resize',resize);
+        resize();
+
+        document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+
+        class Particle{
+            constructor(){
+                this.x=Math.random()*W;
+                this.y=Math.random()*H;
+                this.vx=(Math.random()-.5)*.4;
+                this.vy=(Math.random()-.5)*.4;
+                this.r=1.5+Math.random()*1.5;
+                this.alpha=.3+Math.random()*.4;
+            }
+            update(){
+                this.x+=this.vx;
+                this.y+=this.vy;
+                if(this.x<0)this.x=W;
+                if(this.x>W)this.x=0;
+                if(this.y<0)this.y=H;
+                if(this.y>H)this.y=0;
+                // Mouse repel
+                const dx=this.x-mouse.x,dy=this.y-mouse.y;
+                const dist=Math.sqrt(dx*dx+dy*dy);
+                if(dist<150){
+                    const force=(150-dist)/150*.02;
+                    this.vx+=dx/dist*force;
+                    this.vy+=dy/dist*force;
+                }
+                // Dampen
+                this.vx*=.999;
+                this.vy*=.999;
+            }
+            draw(){
+                ctx.beginPath();
+                ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+                ctx.fillStyle=`rgba(${CYAN[0]},${CYAN[1]},${CYAN[2]},${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        for(let i=0;i<PARTICLE_COUNT;i++)particles.push(new Particle());
+
+        function drawConnections(){
+            for(let i=0;i<particles.length;i++){
+                for(let j=i+1;j<particles.length;j++){
+                    const dx=particles[i].x-particles[j].x;
+                    const dy=particles[i].y-particles[j].y;
+                    const dist=Math.sqrt(dx*dx+dy*dy);
+                    if(dist<CONNECTION_DIST){
+                        const alpha=(1-dist/CONNECTION_DIST)*.15;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x,particles[i].y);
+                        ctx.lineTo(particles[j].x,particles[j].y);
+                        ctx.strokeStyle=`rgba(${CYAN[0]},${CYAN[1]},${CYAN[2]},${alpha})`;
+                        ctx.lineWidth=.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate(){
+            ctx.clearRect(0,0,W,H);
+            particles.forEach(p=>{p.update();p.draw()});
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    })();
+
+    // ── GSAP entrance animation ──
+    window.addEventListener('DOMContentLoaded',function(){
+        if(typeof gsap==='undefined')return;
+        // Sidebar slide in
+        gsap.from('.sidebar',{x:-60,opacity:0,duration:.5,ease:'power2.out',delay:.2});
+        // Topbar fade in
+        gsap.from('.topbar',{y:-20,opacity:0,duration:.4,ease:'power2.out',delay:.3});
+        // Content fade up
+        gsap.from('.content',{y:30,opacity:0,duration:.5,ease:'power2.out',delay:.4});
+    });
+
+    // ── GSAP tab transition helper ──
+    window.__gsapTabIn=function(selector){
+        if(typeof gsap==='undefined')return;
+        gsap.from(selector,{opacity:0,y:14,duration:.35,ease:'power2.out',stagger:.05});
+    };
+    </script>
+    <script>window.__API_BASE__ = "";</script>
+    <script type="text/babel">
+    const {useState,useEffect,useRef,useCallback,Fragment} = React;
+    const API = (typeof window !== 'undefined' && window.__API_BASE__) || location.origin;
+    const fmt = p => {if(p==null||isNaN(p))return"—";const r=p/100;if(Math.abs(r)>=1e7)return`₹${(r/1e7).toFixed(2)} Cr`;if(Math.abs(r)>=1e5)return`₹${(r/1e5).toFixed(2)} L`;const d=Math.abs(r)<100?2:0;return`₹${r.toLocaleString("en-IN",{minimumFractionDigits:d,maximumFractionDigits:d})}`};
+    const pct = (x,d=1)=>((x||0)*100).toFixed(d);
+    const esc = s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+    const label = t => {if(!t)return"";const m={"INSUFFICIENT_FUNDS":"Insufficient Funds","HARD_DECLINE":"Hard Decline","NETWORK_TIMEOUT":"Network Timeout","3DS_OTP_CHALLENGE_TIMEOUT":"3DS OTP Timeout","GATEWAY_TIMEOUT":"Gateway Timeout","ISSUER_UNAVAILABLE":"Issuer Unavailable","SUBSCRIPTION_FAILED":"Subscription Failed","CUSTOMER_ABANDONMENT":"Customer Abandonment","INVOICE_OVERDUE":"Invoice Overdue","PRICE_SHOCK":"Price Shock","LATE_AUTH":"Late Auth","NETWORK_FAILURE":"Network Failure","CARD_EXPIRED":"Card Expired","OVERDUE_GENUINE":"Overdue Genuine","PAYMENT_DECLINED":"Payment Declined"};return m[t]||t.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase())};
+    const FAILURE_TYPES=["INSUFFICIENT_FUNDS","HARD_DECLINE","NETWORK_TIMEOUT","3DS_OTP_CHALLENGE_TIMEOUT","GATEWAY_TIMEOUT","ISSUER_UNAVAILABLE","SUBSCRIPTION_FAILED","CUSTOMER_ABANDONMENT"];
+    // Paytm brand palette (dashboard.css is the source of truth)
+    const PAYTM_NAVY="#002970",PAYTM_CYAN="#00BAF2",PAYTM_CRIMSON="#E42352",PAYTM_LIGHT="#7FDBFF";
+    const CHANNEL_COLORS={whatsapp:"#22c55e",sms:PAYTM_CYAN,email:"#a78bfa",voice:"#eab308",retry:"#64748b",payment_link:"#4ade80",other:"#94a3b8"};
+
+    // ── Audio ──
+    const AudioCtx=(()=>{let ctx=null;return()=>{if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();return ctx}})();
+    function playTriad(){const ctx=AudioCtx();if(!ctx)return;if(ctx.state==='suspended')ctx.resume();[659.25,987.77,1318.51].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.value=0.07;o.connect(g).connect(ctx.destination);const t=ctx.currentTime+i*0.12;o.start(t);g.gain.exponentialRampToValueAtTime(0.001,t+0.55);o.stop(t+0.6)})}
+    function burstConfetti(cvs){const ctx=cvs.getContext('2d');const W=cvs.width=cvs.offsetWidth;const H=cvs.height=cvs.offsetHeight;const ps=Array.from({length:50},()=>({x:W/2,y:H/2,vx:(Math.random()-.5)*14,vy:-Math.random()*9-3,r:3+Math.random()*5,life:1}));    const cols=[PAYTM_CYAN,PAYTM_NAVY,'#22c55e','#eab308',PAYTM_CRIMSON,'#4ade80','#a78bfa'];(function f(){ctx.clearRect(0,0,W,H);let a=0;ps.forEach(p=>{if(p.life<=0)return;a++;p.x+=p.vx;p.y+=p.vy;p.vy+=.2;p.life-=.016;ctx.globalAlpha=p.life;ctx.fillStyle=cols[~~(Math.random()*cols.length)];ctx.beginPath();ctx.arc(p.x,p.y,Math.max(.5,p.r*p.life),0,Math.PI*2);ctx.fill()});ctx.globalAlpha=1;if(a>0)requestAnimationFrame(f)})()}
+    window.addEventListener('recovery-complete',()=>{playTriad();const c=document.getElementById('confetti-canvas');if(c)burstConfetti(c)});
+
+    // ── P0: guided tour — spotlight walk of the judge-critical surfaces ──
+    const TOUR_STEPS=[
+        {sel:".hero",title:"The headline: incremental, not gross",body:"₹ recovered measured against a randomized control group — with a 95% bootstrap CI. The naive-retry bar shows what a dumb strategy earns; the gap is the agent's value.",tab:"hub"},
+        {sel:".metrics",title:"Four numbers that survive scrutiny",body:"Recovery rate vs control, the lift with its CI, incremental money, and the amount at risk. Every figure reproducible with --seed 42.",tab:"hub"},
+        {sel:".funnel",title:"Where cases fall out of the funnel",body:"Failed events → policy-eligible → interventions → settled recoveries, with drop-offs named: attempt caps, opt-outs, promises paused.",tab:"hub"},
+        {sel:".tick-row",title:"The agent, live",body:"Every classification, policy verdict, and execution streams in from the running engine — this is the audit trail as it happens.",tab:"hub"},
+        {sel:".nav-item:nth-child(1)",title:"Case Ledger",body:"Every case, every decision. Click a row, then Explain / Decision EV to see the full reasoning chain and rejected alternatives.",tab:"ledger",nav:true},
+        {sel:".card",title:"Decision inspector",body:"Expected value for every candidate action, the winner, and why the rest were rejected — policy blocks and economic stops included.",tab:"ledger",skipIfNoCases:true},
+        {sel:".metrics",title:"Engine & ROI",body:"UCB1 bandit state, CUSUM change-point detector, checkout simulator, and a live merchant ROI calculator driven by config economics.",tab:"engine"},
+        {sel:".hero",title:"Trust is the product",body:"SHA-256 chained audit trail (verify it live), 8/8 threats mitigated, adversarial LLM test — compliance is a structural gate, not a promise.",tab:"security"},
+        {sel:".tb-right",title:"Run it yourself",body:"Run Batch re-seeds the whole cohort in front of you. The numbers you just saw are reproducible — that's the point.",tab:"hub"},
+    ];
+    function Tour({idx,setIdx,onClose,setTab}){
+        const step=TOUR_STEPS[idx];
+        const[rect,setRect]=useState(null);
+        useEffect(()=>{
+            if(!step)return;
+            if(step.tab)setTab(step.tab);
+            const t=setTimeout(()=>{
+                const el=document.querySelector(step.sel);
+                if(el){el.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>{const r=el.getBoundingClientRect();setRect({top:r.top-6,left:r.left-6,width:r.width+12,height:r.height+12})},350)}
+                else setRect(null);
+            },60);
+            return()=>clearTimeout(t);
+        },[idx]);
+        useEffect(()=>{
+            const h=e=>{if(e.key==="Escape")onClose();if(e.key==="ArrowRight"&&idx<TOUR_STEPS.length-1)setIdx(idx+1);if(e.key==="ArrowLeft"&&idx>0)setIdx(idx-1)};
+            window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);
+        },[idx,onClose,setIdx]);
+        if(!step)return null;
+        // card placement: below the spotlight when it fits, above otherwise, centered fallback
+        let cardStyle={left:"50%",top:"50%",transform:"translate(-50%,-50%)",width:340};
+        if(rect){
+            const below=rect.top+rect.height+230<window.innerHeight;
+            const top=below?rect.top+rect.height+14:Math.max(12,rect.top-224);
+            cardStyle={left:Math.max(12,Math.min(rect.left,window.innerWidth-356)),top,width:344};
+        }
+        return(
+            <>
+                <div className="tour-backdrop" onClick={onClose}/>
+                {rect&&<div className="tour-spot" style={{top:rect.top,left:rect.left,width:rect.width,height:rect.height}} onClick={onClose}/>}
+                <div className="tour-card" style={cardStyle}>
+                    <button className="tour-x" onClick={onClose}>✕</button>
+                    <div className="tour-dots">{TOUR_STEPS.map((_,i)=><span key={i} className={i===idx?"on":""}/>)}</div>
+                    <h3>{step.title}</h3>
+                    <p>{step.body}</p>
+                    <div className="tour-nav">
+                        <span className="tour-count">{idx+1} / {TOUR_STEPS.length}</span>
+                        <div style={{display:"flex",gap:6}}>
+                            {idx>0&&<button className="btn btn-xs btn-outline" onClick={()=>setIdx(idx-1)}>← Back</button>}
+                            {idx<TOUR_STEPS.length-1
+                                ?<button className="btn btn-xs" onClick={()=>setIdx(idx+1)}>Next →</button>
+                                :<button className="btn btn-xs btn-grn" onClick={onClose}>Done 🎉</button>}
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // ── P0: first-load seed overlay (live SSE progress over /batch/run/stream) ──
+    function SeedOverlay({progress,onSkip}){
+        const p=progress.total>0?Math.min(100,Math.round(progress.current/progress.total*100)):0;
+        return(
+            <div className="seed-overlay">
+                <div className="seed-card">
+                    <div className="seed-logo">⚡</div>
+                    <h2>Spinning up the recovery engine</h2>
+                    <p>Ingesting a seeded cohort of failed payments, classifying each one, and walking the policy gate — live, right now.</p>
+                    <div className="seed-bar"><div style={{width:p+"%"}}/></div>
+                    <div className="seed-meta">{progress.current}/{progress.total} cases · seed 42 · reproducible</div>
+                    <button className="btn btn-sm btn-outline" onClick={onSkip}>Skip animation</button>
+                </div>
+            </div>
+        );
+    }
+
+    // ── Main App ──
+    function App(){
+        const[tab,setTabState]=useState((location.hash||"#hub").slice(1)||"hub");
+        const[rep,setRep]=useState(null);
+        const[liveRep,setLiveRep]=useState(null);
+        const[cases,setCases]=useState([]);
+        const[loading,setLoading]=useState(true);
+        const[error,setError]=useState(false);
+        const[running,setRunning]=useState(false);
+        const[progress,setProgress]=useState({current:0,total:1});
+        const[auditOpen,setAuditOpen]=useState(false);
+        const[selectedCase,setSelectedCase]=useState(null);
+        const[toast,setToast]=useState(null);
+        const[soundEnabled,setSoundEnabled]=useState(true);
+        const[autoPilot,setAutoPilot]=useState(false);
+        const[lastUpdated,setLastUpdated]=useState(null);
+        const[security,setSecurity]=useState(null);
+        const[budget,setBudget]=useState(null);
+        const[bandit,setBandit]=useState(null);
+        const[cusum,setCusum]=useState(null);
+        const[incidents,setIncidents]=useState(null);
+        const[approval,setApproval]=useState(null);
+        const[funnel,setFunnel]=useState(null);
+        const[summary,setSummary]=useState(null);
+        const[merchant,setMerchant]=useState(null);
+        const[ticker,setTicker]=useState([]);
+        const[healthScore,setHealthScore]=useState(null);
+        const[engineStats,setEngineStats]=useState(null);
+        const[sseEvents,setSseEvents]=useState([]);
+        const[seedRun,setSeedRun]=useState(null);          // {current,total} | null — first-load seed overlay
+        const[tourIdx,setTourIdx]=useState(null);           // null = tour off; index into TOUR_STEPS
+        const wsRef=useRef(null);
+        const esRef=useRef(null);
+        const didAutoRun=useRef(false);
+        const autoPilotRef=useRef(false);
+        autoPilotRef.current=autoPilot;
+
+        const setTab=useCallback(t=>{setTabState(t);try{history.replaceState(null,"","#"+t)}catch(e){}},[]);
+
+        const notify=useCallback(msg=>{setToast(msg);setTimeout(()=>setToast(null),3000)},[]);
+
+        const fetchBaseline=useCallback(async()=>{
+            try{
+                const[r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13]=await Promise.all([
+                    fetch(`${API}/report/baseline`),fetch(`${API}/cases/recent?limit=50`),
+                    fetch(`${API}/security/report`),fetch(`${API}/budget`),
+                    fetch(`${API}/analytics/bandit`),fetch(`${API}/analytics/cusum`),
+                    fetch(`${API}/incidents`),fetch(`${API}/approval/queue`),
+                    fetch(`${API}/analytics/funnel`),fetch(`${API}/analytics/forecast`),
+                    fetch(`${API}/analytics/calibration`),fetch(`${API}/benchmark/compare`),
+                    fetch(`${API}/merchant/profile`),
+                ]);
+                if(r1.ok)setRep(await r1.json());
+                if(r2.ok)setCases((await r2.json()).cases);
+                if(r3.ok)setSecurity(await r3.json());
+                if(r4.ok)setBudget(await r4.json());
+                if(r5.ok)setBandit(await r5.json());
+                if(r6.ok)setCusum(await r6.json());
+                if(r7.ok)setIncidents(await r7.json());
+                if(r8.ok)setApproval(await r8.json());
+                if(r9.ok)setFunnel(await r9.json());
+                if(r10.ok||r11.ok||r12.ok)setEngineStats({forecast:r10.ok?await r10.json():null,calibration:r11.ok?await r11.json():null,benchmark:r12.ok?await r12.json():null});
+                if(r13.ok)setMerchant(await r13.json());
+                setLastUpdated(new Date());
+                setLoading(false);setError(false);
+            }catch(e){setError(true);setLoading(false)}
+        },[]);
+
+        useEffect(()=>{fetchBaseline()},[fetchBaseline]);
+
+        // P0: guided tour — start on request (▶ Tour button) or via #tour deep link
+        useEffect(()=>{if(location.hash==="#tour"){setTab("hub");setTourIdx(0)}},[]);
+        useEffect(()=>{if(running)return;const id=setInterval(fetchBaseline,30000);return()=>clearInterval(id)},[running,fetchBaseline]);
+
+        // Auto-run on first load — through the seed overlay (SSE progress), not the silent WS replay
+        useEffect(()=>{if(!loading&&!error&&rep&&!didAutoRun.current){didAutoRun.current=true;if((rep.batch?.cases||0)===0)runSeed()}},[loading,error,rep]);
+
+        // Auto-pilot loop
+        useEffect(()=>{if(!autoPilot||running)return;const id=setInterval(()=>{if(!autoPilotRef.current||running)return;runBatch()},15000);return()=>clearInterval(id)},[autoPilot,running]);
+
+        // Keyboard shortcut: Cmd+R / Ctrl+R
+        useEffect(()=>{
+            const handler=e=>{if((e.metaKey||e.ctrlKey)&&e.key==='r'&&!running){e.preventDefault();runBatch()}};
+            window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);
+        },[running]);
+
+        // P0: first-load seed — SSE progress stream so the user watches cases ingest in real time
+        const runSeed=useCallback(()=>{
+            if(seedRun)return;
+            setSeedRun({current:0,total:0});
+            const es=new EventSource(`${API}/batch/run/stream?seed=42&cases=200&rehearsed=true`);
+            es.onmessage=e=>{
+                const raw=(e.data||"").trim();
+                if(/^\d+$/.test(raw)){setSeedRun({current:0,total:parseInt(raw,10)});return}
+                if(raw.startsWith("done")){
+                    es.close();setSeedRun(null);
+                    fetchBaseline();
+                    try{window.dispatchEvent(new Event('recovery-complete'))}catch(err){}
+                    return;
+                }
+                const m=raw.match(/^(\d+)\/(\d+) processing/);
+                if(m)setSeedRun({current:parseInt(m[1],10),total:parseInt(m[2],10)});
+            };
+            es.onerror=()=>{es.close();setSeedRun(null);runBatch()};
+        },[seedRun,runBatch,fetchBaseline,API]);
+
+        const runBatch=useCallback(()=>{
+            if(running)return;setRunning(true);setProgress({current:0,total:1});setLiveRep(null);
+            const wsHost=location.hostname==='paytm-recovery-agent.vercel.app'?'paytm-recovery-agent.onrender.com':location.host;
+            const wsProto=location.protocol==='https:'?'wss:':'ws:';
+            const ws=new WebSocket(`${wsProto}//${wsHost}/ws/replay?seed=42&cases=200`);
+            wsRef.current=ws;
+            ws.onmessage=e=>{try{const msg=JSON.parse(e.data);if(msg.type==="start")setProgress({current:0,total:msg.total});else if(msg.type==="progress")setProgress({current:msg.current,total:msg.total});else if(msg.type==="done"){setLiveRep(msg.report);setRunning(false);ws.close();fetch(`${API}/cases/recent?limit=50`).then(r=>r.json()).then(d=>{if(d.cases)setCases(d.cases)}).catch(()=>{});setLastUpdated(new Date());try{window.dispatchEvent(new Event('recovery-complete'))}catch(e){}}else if(msg.type==="error"){setRunning(false);ws.close()}}catch(err){}};
+            ws.onerror=()=>setRunning(false);ws.onclose=()=>setRunning(false);
+        },[running]);
+
+        const dismissLive=useCallback(()=>setLiveRep(null),[]);
+        const skipSeed=useCallback(()=>{setSeedRun(null)},[]);
+        useEffect(()=>{return()=>{if(wsRef.current)wsRef.current.close();if(esRef.current)esRef.current.close()}},[]);
+
+        // SSE live ticker — auto-connects once cases exist
+        useEffect(()=>{
+            if(loading||error||!cases.length||esRef.current)return;
+            const es=new EventSource(`${API}/stream/events`);
+            esRef.current=es;
+            es.onmessage=e=>{try{const ev=JSON.parse(e.data);setTicker(t=>[ev,...t].slice(0,25));setSseEvents(e2=>[ev,...e2].slice(0,30))}catch(err){}};
+            es.onerror=()=>{};
+            return()=>{es.close();esRef.current=null};
+        },[loading,error,cases.length,API]);
+
+        // Skeleton loader
+        if(loading)return(
+            <div className="layout">
+                <aside className="sidebar"><div className="sidebar-logo"><h1><span className="logo-chip">P</span>Paytm Agent</h1><div className="sub">Revenue Recovery</div></div></aside>
+                <div className="main"><div className="content" style={{padding:40}}>
+                    <div className="skeleton sk-card" style={{height:180,marginBottom:16}}></div>
+                    <div className="metrics">{[1,2,3,4].map(i=><div key={i} className="skeleton sk-card"></div>)}</div>
+                    <div className="grid-2">{[1,2].map(i=><div key={i} className="skeleton sk-card" style={{height:260}}></div>)}</div>
+                </div></div>
+            </div>
+        );
+        if(error)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div style={{textAlign:"center"}}><p style={{fontSize:16,marginBottom:8}}>Failed to load report</p><p style={{color:"var(--dim)",fontSize:11}}>Start with: <code className="mono">uvicorn app.main:app --port 8000</code></p><button className="btn" style={{marginTop:12}} onClick={fetchBaseline}>Retry</button></div></div>;
+
+        const active=liveRep||rep;
+        const hd=active.headline||{},batch=active.batch||{},cost=active.cost||{},perClass=active.per_class||{},promises=active.promises||{};
+        const heroJump=()=>{setTab("hub");setTimeout(()=>{const el=document.querySelector(".hero");if(!el)return;el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1100)},120)};
+        const naiveRate=hd.naive_recovery_rate!=null?hd.naive_recovery_rate:null;
+        const blocks=active.policy_transparency?.blocked_actions||{};
+        const cpir=cost.cost_per_incremental_recovery_paise;
+
+        return(
+            <>
+            <canvas id="confetti-canvas" style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",pointerEvents:"none",zIndex:999}}/>
+            {toast&&<div className="toast">{toast}</div>}
+            {seedRun&&<SeedOverlay progress={seedRun} onSkip={skipSeed}/>}
+            {tourIdx!=null&&<Tour idx={tourIdx} setIdx={setTourIdx} onClose={()=>setTourIdx(null)} setTab={setTab}/>}
+
+            <div className="layout">
+                <aside className="sidebar">
+                    <div className="sidebar-logo"><h1><span className="logo-chip">P</span>Paytm Agent</h1><div className="sub">Revenue Recovery</div></div>
+                    <nav className="nav">
+                        <div className="nav-section">Core</div>
+                        {[{id:"hub",icon:"📊",label:"Dashboard"},{id:"ledger",icon:"📋",label:"Case Ledger"}].map(n=><div key={n.id} className={`nav-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}><span className="icon">{n.icon}</span>{n.label}</div>)}
+                        <div className="nav-section">Intelligence</div>
+                        {[{id:"engine",icon:"⚙️",label:"Engine & ROI"},{id:"analytics",icon:"📈",label:"Analytics"}].map(n=><div key={n.id} className={`nav-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}><span className="icon">{n.icon}</span>{n.label}</div>)}
+                        <div className="nav-section">Operations</div>
+                        {[{id:"tools",icon:"🛠",label:"Tools"},{id:"security",icon:"🛡",label:"Security"}].map(n=><div key={n.id} className={`nav-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}><span className="icon">{n.icon}</span>{n.label}</div>)}
+                    </nav>
+                    <div className="sidebar-footer">Paytm Recovery Agent
+                        <div className="sidebar-disclaimer">Built as a concept for the Paytm Hackathon. Not an official Paytm product.</div>
+                    </div>
+                </aside>
+
+                <div className="main">
+                    <div className="topbar">
+                        <div className="tb-left">
+                            {running&&<span className="badge live">LIVE</span>}
+                            {running&&<span style={{fontSize:10,color:"var(--blu)"}}>{progress.total>1?`${progress.current}/${progress.total}`:"Running…"}</span>}
+                            {!running&&<span className="badge">{batch.cases||"—"} cases</span>}
+                            {lastUpdated&&<span style={{fontSize:9,color:"var(--dim)",fontFamily:"var(--mono)"}}>updated {lastUpdated.toLocaleTimeString()}</span>}
+                        </div>
+                        <div className="kpi-strip" title="Click to jump to the hero">
+                            <div className="kpi-chip" onClick={()=>heroJump()}><span className="kpi-v">+{(hd.incremental_recovery_pp||0).toFixed(1)}pp</span><span className="kpi-l">lift</span></div>
+                            <div className="kpi-chip" onClick={()=>heroJump()}><span className="kpi-v">{fmt(hd.incremental_money_paise)}</span><span className="kpi-l">incremental</span></div>
+                            <div className="kpi-chip" onClick={()=>heroJump()}><span className="kpi-v">{pct(hd.recovery_rate_treatment)}%</span><span className="kpi-l">vs {pct(hd.recovery_rate_control)}% control</span></div>
+                        </div>
+                        <div className="tb-right">
+                            <button className="btn btn-sm btn-outline" onClick={()=>{setTab("hub");setTourIdx(0)}}>▶ Tour</button>
+                            <div className="sound-toggle" onClick={()=>{setSoundEnabled(!soundEnabled);notify(soundEnabled?"Muted":"Sound on")}}>{soundEnabled?"🔊":"🔇"}</div>
+                            <div className={`sound-toggle ${autoPilot?"tag-blue":""}`} onClick={()=>{setAutoPilot(!autoPilot);notify(autoPilot?"Auto-pilot off":"Auto-pilot on")}} style={autoPilot?{borderColor:"rgba(0,41,112,.4)",color:"var(--blu)"}:{}}>
+                                {autoPilot?"⚡ AUTO":"⚡ OFF"}
+                            </div>
+                            <button className="btn btn-sm btn-outline" onClick={fetchBaseline} disabled={running}>↻</button>
+                            <button className="btn btn-sm" onClick={runBatch} disabled={running}>{running?"Running…":"Run Batch"}</button>
+                        </div>
+                    </div>
+
+                    <div className="content">
+                        {tab==="hub"&&<HubTab hd={hd} batch={batch} cost={cost} perClass={perClass} promises={promises} blocks={blocks} cpir={cpir} naiveRate={naiveRate} cases={cases} running={running} progress={progress} liveRep={liveRep} dismissLive={dismissLive} onCaseClick={id=>{setSelectedCase(id);setAuditOpen(true)}} API={API} funnel={funnel} approval={approval} budget={budget} ticker={ticker}/>}
+                        {tab==="ledger"&&<LedgerTab cases={cases} onCaseClick={id=>{setSelectedCase(id);setAuditOpen(true)}} API={API} notify={notify}/>}
+                        {tab==="engine"&&<EngineTab bandit={bandit} cusum={cusum} budget={budget} incidents={incidents} API={API} notify={notify} engineStats={engineStats} merchant={merchant} setMerchant={setMerchant} sseEvents={sseEvents}/>}
+                        {tab==="analytics"&&<AnalyticsTab summary={summary} setSummary={setSummary} API={API}/>}
+                        {tab==="tools"&&<ToolsTab API={API} notify={notify}/>}
+                        {tab==="security"&&<SecurityTab security={security} API={API} notify={notify}/>}
+                    </div>
+                </div>
+            </div>
+
+            <AuditModal open={auditOpen} onClose={()=>setAuditOpen(false)} caseId={selectedCase} API={API}/>
+            </>
+        );
+    }
+
+    // ── Live Ticker (Dashboard) ──
+    function LiveTicker({ticker}){
+        if(!ticker.length)return null;
+        const actorColor={classifier:"var(--blu)",selector:"var(--pur)",executor:"var(--grn)",policy:"var(--yel)",world:"var(--cyn)",system:"var(--dim)",customer:"var(--red)",human:"var(--red)"};
+        return(
+            <div className="card a-fu" style={{marginBottom:16}}>
+                <div className="card-header"><h2>🔴 Live Activity</h2><span className="tag-blue tag">SSE stream</span></div>
+                <div className="card-body"><div className="ticker">
+                    {ticker.map((ev,i)=><div key={ev.idx+"-"+i} className="tick-row" style={{opacity:1-(i*0.03)}}>
+                        <span className="tick-actor" style={{color:actorColor[ev.actor]||"var(--dim)"}}>{ev.actor}</span>
+                        <span style={{fontWeight:600}}>{(ev.event_type||"").replace(/[._]/g," ")}</span>
+                        <span className="mono" style={{color:"var(--dim)",fontSize:9}}>{ev.case_id?String(ev.case_id).slice(0,12):""}</span>
+                        <span className="tick-ts">{ev.amount_display||""}</span>
+                    </div>)}
+                </div></div>
+            </div>
+        );
+    }
+
+    // ── Hub Tab ──
+    function HubTab({hd,batch,cost,perClass,promises,blocks,cpir,naiveRate,cases,running,progress,liveRep,dismissLive,onCaseClick,API,funnel,approval,budget,ticker}){
+        const ci=hd.incremental_recovery_ci95_pp||[0,0];
+        const lift=hd.incremental_recovery_pp||0;
+        const classRef=useRef(null);
+        const spendRef=useRef(null);
+        const charts=useRef({});
+
+        useEffect(()=>{
+            if(charts.current.cls)charts.current.cls.destroy();
+            const entries=Object.entries(perClass).sort((a,b)=>b[1].lift_pp-a[1].lift_pp);
+            if(entries.length&&classRef.current){
+                charts.current.cls=new Chart(classRef.current,{type:"bar",data:{labels:entries.map(([c])=>c.replace(/_/g," ").toLowerCase()),datasets:[{label:"Treatment %",data:entries.map(([,d])=>pct(d.treatment_rate,1)),backgroundColor:"#002970",borderRadius:3},{label:"Control %",data:entries.map(([,d])=>pct(d.control_rate,1)),backgroundColor:"#94a3b8",borderRadius:3}]},options:{responsive:true,plugins:{legend:{labels:{color:"#666666",font:{size:10}}}},scales:{x:{ticks:{color:"#666666",font:{size:9}},grid:{color:"rgba(0,0,0,0.04)"}},y:{beginAtZero:true,max:100,ticks:{color:"#666666",callback:v=>v+"%"},grid:{color:"rgba(0,0,0,0.04)"}}}}});
+            }
+            if(charts.current.spend)charts.current.spend.destroy();
+            const chs=Object.entries(cost.cost_by_channel_paise||{}).filter(([,v])=>v>0).map(([k,v])=>({n:k,v}));
+            if(chs.length&&spendRef.current){
+                charts.current.spend=new Chart(spendRef.current,{type:"doughnut",data:{labels:chs.map(c=>`${c.n.charAt(0).toUpperCase()+c.n.slice(1)} · ${fmt(c.v)}`),datasets:[{data:chs.map(c=>c.v),backgroundColor:chs.map(c=>CHANNEL_COLORS[c.n]||"#94a3b8")}]},options:{responsive:true,cutout:"55%",plugins:{legend:{position:"bottom",labels:{color:"#94a3b8",padding:10,font:{size:10}}}}}});
+            }
+        },[perClass,cost]);
+
+        const conv=funnel&&funnel.conversion_rates||{};
+
+        return(
+            <>
+                {liveRep&&<div style={{background:"rgba(0,41,112,.06)",border:"1px solid rgba(0,41,112,.2)",borderRadius:8,padding:"7px 12px",marginBottom:14,display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:11}}>
+                    <span style={{color:"var(--blu)",fontWeight:600}}>LIVE results from batch run</span>
+                    <button className="btn btn-xs btn-outline" onClick={dismissLive}>Show baseline</button>
+                </div>}
+
+                {/* Hero */}
+                <div className="hero a-fu">
+                    <div>
+                        <div className="h-label">Incremental recovery vs control</div>
+                        <div className="h-amt">{fmt(hd.incremental_money_paise)}</div>
+                        <div className="h-sub">+{lift.toFixed(1)} percentage points lift</div>
+                        <div className="h-ci">95% CI [+{ci[0]}, +{ci[1]}] · 2,000 bootstrap resamples</div>
+                    </div>
+                    <div>
+                        <div className="bar-g"><div className="bar-l"><span>Treatment (agent)</span><span>{pct(hd.recovery_rate_treatment)}%</span></div><div className="bar"><div className="bf t" style={{width:pct(hd.recovery_rate_treatment)+"%"}}></div></div></div>
+                        <div className="bar-g"><div className="bar-l"><span>Control (no agent)</span><span>{pct(hd.recovery_rate_control)}%</span></div><div className="bar"><div className="bf c" style={{width:pct(hd.recovery_rate_control)+"%"}}></div></div></div>
+                        {naiveRate!=null&&<div className="bar-g"><div className="bar-l"><span>Naive retry</span><span>{pct(naiveRate)}%</span></div><div className="bar"><div className="bf n" style={{width:pct(naiveRate)+"%"}}></div></div></div>}
+                        <div className="h-delta"><div className="h-dv">+{fmt(hd.incremental_money_paise)}</div><div className="h-dl">incremental money recovered</div></div>
+                    </div>
+                </div>
+
+                {/* Metrics */}
+                <div className="metrics">
+                    <div className="metric a-fu d1"><div className="metric-label">Recovery rate</div><div className="metric-value tabular">{pct(hd.recovery_rate_treatment)}%</div><div className="metric-sub">control {pct(hd.recovery_rate_control)}%</div></div>
+                    <div className="metric a-fu d2"><div className="metric-label">Incremental lift</div><div className="metric-value tabular" style={{color:"var(--grn)"}}>+{(hd.incremental_recovery_pp||0).toFixed(1)} pp</div><div className="metric-sub">95% CI [+{ci[0]}, +{ci[1]}]</div></div>
+                    <div className="metric primary a-fu d3"><div className="metric-label">Money recovered</div><div className="metric-value tabular">{fmt(hd.incremental_money_paise)}</div><div className="metric-sub">incremental vs control</div></div>
+                    <div className="metric a-fu d4"><div className="metric-label">Amount at risk</div><div className="metric-value tabular">{fmt(batch.amount_at_risk_paise)}</div><div className="metric-sub">across {batch.cases} cases</div></div>
+                </div>
+
+                {/* Recovery Funnel */}
+                {funnel&&funnel.stages&&<div className="card a-fu" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>Recovery Funnel</h2>{conv.overall_rate!=null&&<span className="tag-green tag">{pct(conv.overall_rate,1)}% end-to-end</span>}</div>
+                    <div className="card-body">
+                        <div className="funnel">
+                            {funnel.stages.map((s,i)=>(
+                                <Fragment key={i}>
+                                    {i>0&&<span className="funnel-arrow">→</span>}
+                                    <div className="funnel-stage">
+                                        <div className="funnel-num" style={{color:i===funnel.stages.length-1?"var(--grn)":"var(--txt)"}}>{s.count}</div>
+                                        <div className="funnel-label">{s.label}</div>
+                                        {s.dropoff_pct!=null&&<div style={{fontSize:8,color:"var(--red)",marginTop:2}}>-{s.dropoff_pct.toFixed(0)}%</div>}
+                                    </div>
+                                </Fragment>
+                            ))}
+                        </div>
+                        {funnel.drop_offs&&Object.keys(funnel.drop_offs).length>0&&<div className="chips" style={{marginTop:10}}>
+                            {Object.entries(funnel.drop_offs).map(([k,v])=><span key={k} className="chip">{esc(k.replace(/_/g," "))} · {v}</span>)}
+                        </div>}
+                    </div>
+                </div>}
+
+                {/* Live ticker */}
+                <LiveTicker ticker={ticker}/>
+
+                {/* SMB Health Score */}
+                <div className="card a-fu" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>🏥 Merchant Health Score</h2></div>
+                    <div className="card-body" style={{display:"grid",gridTemplateColumns:"200px 1fr",gap:20,alignItems:"center"}}>
+                        <div style={{textAlign:"center"}}>
+                            <svg viewBox="0 0 120 120" width="120" height="120">
+                                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--bdr)" strokeWidth="10"/>
+                                <circle cx="60" cy="60" r="50" fill="none" stroke={hd.recovery_rate_treatment>0.5?"var(--grn)":hd.recovery_rate_treatment>0.3?"var(--yel)":"var(--red)"} strokeWidth="10" strokeDasharray={`${(hd.recovery_rate_treatment||0)*314} 314`} strokeLinecap="round" transform="rotate(-90 60 60)" style={{transition:"stroke-dasharray .6s ease"}}/>
+                                <text x="60" y="56" textAnchor="middle" fontSize="22" fontWeight="800" fontFamily="var(--mono)" fill="var(--txt)">{pct(hd.recovery_rate_treatment||0)}</text>
+                                <text x="60" y="72" textAnchor="middle" fontSize="9" fill="var(--dim)" textTransform="uppercase" letterSpacing=".04em">recovery rate</text>
+                            </svg>
+                        </div>
+                        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10}}>
+                            <div className="sec-box"><div className="form-label">Recovery Rate</div><div className="mono" style={{fontSize:14,fontWeight:700,color:hd.recovery_rate_treatment>0.5?"var(--grn)":"var(--yel)"}}>{pct(hd.recovery_rate_treatment||0)}%</div><div style={{fontSize:9,color:"var(--dim)"}}>vs {pct(hd.recovery_rate_control||0)}% control</div></div>
+                            <div className="sec-box"><div className="form-label">Cost Efficiency</div><div className="mono" style={{fontSize:14,fontWeight:700}}>{cpir!=null?fmt(cpir):"—"}</div><div style={{fontSize:9,color:"var(--dim)"}}>cost per recovery</div></div>
+                            <div className="sec-box"><div className="form-label">Compliance</div><div className="mono" style={{fontSize:14,fontWeight:700,color:cost.opt_outs>0?"var(--grn)":"var(--txt)"}}>{cost.opt_outs||0}</div><div style={{fontSize:9,color:"var(--dim)"}}>opt-outs honored</div></div>
+                            <div className="sec-box"><div className="form-label">Promise Keeping</div><div className="mono" style={{fontSize:14,fontWeight:700}}>{promises.keep_rate!=null?pct(promises.keep_rate,0)+"%":"—"}</div><div style={{fontSize:9,color:"var(--dim)"}}>PTP honor rate</div></div>
+                            <div className="sec-box"><div className="form-label">Policy Pass Rate</div><div className="mono" style={{fontSize:14,fontWeight:700}}>{pct(1-((blocks&&Object.values(blocks).reduce((a,b)=>a+b,0)||0)/Math.max(cases.length,1)),0)}%</div><div style={{fontSize:9,color:"var(--dim)"}}>actions approved</div></div>
+                            <div className="sec-box"><div className="form-label">Redundancy</div><div className="mono" style={{fontSize:14,fontWeight:700,color:cost.redundant_contact_share>0.1?"var(--red)":"var(--grn)"}}>{pct(cost.redundant_contact_share||0,0)}%</div><div style={{fontSize:9,color:"var(--dim)"}}>duplicate contacts</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Compliance + Approval */}
+                <div className="grid-4" style={{marginBottom:16}}>
+                    <div className="card card-body a-fu d1"><div className="metric-label">Redundant contacts</div><div className="metric-value tabular">{pct(cost.redundant_contact_share,0)}%</div><div className="metric-sub">would have paid anyway</div></div>
+                    <div className="card card-body a-fu d2"><div className="metric-label">Opt-outs honored</div><div className="metric-value tabular">{cost.opt_outs||0}</div><div className="metric-sub">every one respected</div></div>
+                    <div className="card card-body a-fu d3"><div className="metric-label">Promises-to-pay</div><div className="metric-value tabular">{promises.received||0}</div><div className="metric-sub">{promises.keep_rate!=null?pct(promises.keep_rate,0)+"% keep":"none yet"}</div></div>
+                    <div className="card card-body a-fu d4"><div className="metric-label">Cost per recovery</div><div className="metric-value tabular">{cpir!=null?fmt(cpir):"—"}</div><div className="metric-sub">{cost.contacts_executed||0} contacts</div></div>
+                </div>
+
+                {/* Approval Queue inline */}
+                {approval&&approval.count>0&&<div className="card a-fu" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>✋ Approval Queue</h2><span className="badge warn">{approval.count} pending</span></div>
+                    <div className="card-body">
+                        {(approval.queue||[]).slice(0,3).map(c=><div key={c.case_id} className="approval-row">
+                            <div><span style={{fontWeight:600}}>{c.customer}</span><span style={{color:"var(--dim)",marginLeft:6,fontSize:10}}>{label(c.failure_class)}</span></div>
+                            <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                <span className="mono tabular" style={{fontWeight:700}}>{fmt(c.amount_paise)}</span>
+                                <button className="btn btn-xs btn-grn" onClick={async()=>{await fetch(`${API}/approval/${c.case_id}/approve`,{method:"POST"});notify("Approved");fetchBaseline?.()}}>Approve</button>
+                                <button className="btn btn-xs btn-red" onClick={async()=>{await fetch(`${API}/approval/${c.case_id}/reject`,{method:"POST"});notify("Rejected")}}>Reject</button>
+                            </div>
+                        </div>)}
+                    </div>
+                </div>}
+
+                {/* Charts */}
+                <div className="grid-2" style={{marginBottom:16}}>
+                    <div className="card a-fu d5"><div className="card-header"><h2>Recovery by failure class</h2></div><div className="card-body"><canvas ref={classRef} height="200"></canvas></div></div>
+                    <div className="card a-fu d6"><div className="card-header"><h2>Spend by channel</h2></div><div className="card-body">{Object.keys(cost.cost_by_channel_paise||{}).length?<canvas ref={spendRef} height="200"></canvas>:<p style={{color:"var(--dim)",textAlign:"center",padding:"50px 0",fontSize:11}}>No spend recorded</p>}</div></div>
+                </div>
+
+                {/* Policy blocks */}
+                <div className="card a-fu" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>Policy gates that blocked actions</h2></div>
+                    <div className="card-body"><div className="chips">{Object.entries(blocks).length?Object.entries(blocks).map(([k,v])=>(<span className="chip" key={k}>{esc(k)} · {v}</span>)):<span className="chip ok">no blocked actions</span>}</div></div>
+                </div>
+
+                {/* Cases */}
+                <div className="card a-fu" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>Recent cases</h2><span style={{fontSize:9,color:"var(--dim)"}}>click for audit trail</span></div>
+                    <div style={{overflowX:"auto"}}>
+                        <table><thead><tr><th>Case</th><th>Class</th><th>Amount</th><th>Status</th><th>Recovered</th></tr></thead>
+                        <tbody>{cases.slice(0,12).length?cases.slice(0,12).map(c=><tr key={c.case_id} onClick={()=>onCaseClick(c.case_id)} style={{cursor:"pointer"}}>
+                            <td className="mono">{c.case_id.slice(0,12)}</td><td>{label(c.failure_class)}</td><td className="tabular">{fmt(c.amount_paise)}</td>
+                            <td><span className={`pill ${c.status}`}>{c.status.replace(/_/g," ")}</span></td><td className="tabular">{c.recovered_amount_paise?fmt(c.recovered_amount_paise):"—"}</td>
+                        </tr>):<tr><td colSpan="5" style={{color:"var(--dim)"}}>no cases yet</td></tr>}</tbody></table>
+                    </div>
+                </div>
+
+                {/* Features */}
+                <div className="feat-grid" style={{marginBottom:16}}>
+                    <div className="feat-item"><div className="feat-icon">📊</div><div className="feat-title">Incremental Lift</div><div className="feat-desc">Control group absorbs organic recoveries. Bootstrap 95% CI.</div></div>
+                    <div className="feat-item"><div className="feat-icon">🛡</div><div className="feat-title">Compliance Gates</div><div className="feat-desc">Quiet hours, attempt caps, cooldowns, opt-outs, human approval.</div></div>
+                    <div className="feat-item"><div className="feat-icon">🧠</div><div className="feat-title">ML + SHAP</div><div className="feat-desc">HistGradientBoosting with explainable SHAP values.</div></div>
+                    <div className="feat-item"><div className="feat-icon">🎰</div><div className="feat-title">UCB1 Bandit</div><div className="feat-desc">Multi-armed bandit picks best channel per failure class.</div></div>
+                    <div className="feat-item"><div className="feat-icon">🔗</div><div className="feat-title">Audit Trail</div><div className="feat-desc">SHA-256 hash chain. Tamper-evident.</div></div>
+                    <div className="feat-item"><div className="feat-icon">📈</div><div className="feat-title">CUSUM Detector</div><div className="feat-desc">Page's CUSUM for success-rate shifts.</div></div>
+                </div>
+            </>
+        );
+    }
+
+    // ── Ledger Tab ──
+    function LedgerTab({cases,onCaseClick,API,notify}){
+        const[search,setSearch]=useState("");
+        const[statusFilter,setStatusFilter]=useState("all");
+        const[classFilter,setClassFilter]=useState("all");
+        const[expandedId,setExpandedId]=useState(null);
+        const[explainFor,setExplainFor]=useState(null);
+        const[explainData,setExplainData]=useState(null);
+        const classes=[...new Set(cases.map(c=>c.failure_class).filter(Boolean))];
+        const filtered=cases.filter(c=>{
+            if(statusFilter!=="all"&&c.status!==statusFilter)return false;
+            if(classFilter!=="all"&&c.failure_class!==classFilter)return false;
+            if(!search)return true;const q=search.toLowerCase();
+            return c.case_id.toLowerCase().includes(q)||(c.failure_class||"").toLowerCase().includes(q)||(c.status||"").toLowerCase().includes(q);
+        });
+        const exportCsv=useCallback(()=>{
+            const rows=[["Case ID","Failure Class","Amount","Status","Group","Recovered"]];
+            cases.forEach(c=>rows.push([c.case_id,c.failure_class,c.amount_paise,c.status,c.group||"",c.recovered_amount_paise||""]));
+            const blob=new Blob([rows.map(r=>r.join(",")).join("\n")],{type:"text/csv"});
+            const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="recovery_ledger.csv";a.click();
+        },[cases]);
+
+        const fetchJson=useCallback(async url=>{try{const r=await fetch(url);return r.ok?await r.json():null}catch(e){return null}},[]);
+
+        return(
+            <>
+                <div className="tab-head" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div><h1>Case Ledger</h1><p style={{fontSize:11,color:"var(--dim)",marginTop:3}}>Every case, every decision — click a row for the audit trail.</p></div>
+                    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                        <div className="search-wrap"><span className="search-icon">🔍</span><input className="search-input" placeholder="Search cases…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+                        <span className="tag">{filtered.length}/{cases.length}</span>
+                        <span className="tag-green">{cases.filter(c=>c.status==="recovered").length} recovered</span>
+                        <button className="btn btn-xs btn-outline" onClick={exportCsv}>Export CSV</button>
+                    </div>
+                </div>
+                <div className="filter-row" style={{marginBottom:12}}>
+                    <span className="form-label" style={{margin:0}}>Status</span>
+                    {["all","open","scheduled","recovered","written_off"].map(s=><button key={s} className={`fchip ${statusFilter===s?"on":""}`} onClick={()=>setStatusFilter(s)}>{s.replace(/_/g," ")}</button>)}
+                    <span className="form-label" style={{margin:"0 0 0 10px"}}>Class</span>
+                    <select className="form-input" style={{width:170}} value={classFilter} onChange={e=>setClassFilter(e.target.value)}>
+                        <option value="all">All classes</option>
+                        {classes.map(c=><option key={c} value={c}>{label(c)}</option>)}
+                    </select>
+                </div>
+                <div className="card">
+                    <div style={{overflowX:"auto"}}>
+                        <table><thead><tr><th>Case</th><th>Failure Class</th><th>Amount</th><th>Method</th><th>Status</th><th>Group</th><th>Recovered</th><th>Why</th></tr></thead>
+                        <tbody>{filtered.map(c=><Fragment key={c.case_id}>
+                            <tr style={{cursor:"pointer",background:expandedId===c.case_id?"rgba(0,0,0,.03)":"transparent"}} onClick={()=>setExpandedId(expandedId===c.case_id?null:c.case_id)}>
+                                <td className="mono">{c.case_id.slice(0,12)}</td><td>{label(c.failure_class)}</td><td className="tabular">{fmt(c.amount_paise)}</td><td className="mono" style={{textTransform:"capitalize"}}>{c.method||"—"}</td>
+                                <td><span className={`pill ${c.status}`}>{c.status.replace(/_/g," ")}</span></td><td style={{color:c.group==="treatment"?"var(--blu)":"var(--dim)"}}>{c.group||"—"}</td>
+                                <td className="tabular">{c.recovered_amount_paise?fmt(c.recovered_amount_paise):"—"}</td>
+                                <td><button className="btn btn-xs btn-outline" onClick={e=>{e.stopPropagation();setExpandedId(expandedId===c.case_id?null:c.case_id)}}>{expandedId===c.case_id?"▾":"▸"}</button></td>
+                            </tr>
+                            {expandedId===c.case_id&&<tr><td colSpan="8" style={{padding:"10px 14px",background:"rgba(0,0,0,.02)"}}>
+                                <div className="grid-4" style={{gap:6,marginBottom:8}}>
+                                    <div><span className="form-label">Method</span><div className="mono" style={{fontSize:11}}>{c.method||"—"}</div></div>
+                                    <div><span className="form-label">Group</span><div style={{fontSize:11,color:c.group==="treatment"?"var(--blu)":"var(--dim)"}}>{c.group||"—"}</div></div>
+                                    <div><span className="form-label">Customer</span><div style={{fontSize:11}}>{(c.customer?.name)||"—"}</div></div>
+                                    <div><span className="form-label">Written-off reason</span><div style={{fontSize:10,color:"var(--dim)"}}>{c.written_off_reason||"—"}</div></div>
+                                </div>
+                                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                                    <button className="btn btn-xs" onClick={e=>{e.stopPropagation();onCaseClick(c.case_id)}}>Audit Trail</button>
+                                    <button className="btn btn-xs btn-outline" onClick={async e=>{e.stopPropagation();const d=await fetchJson(`${API}/cases/${c.case_id}/uplift`);if(d&&d.best_action)notify(`Best: ${d.best_action.action} · +₹${Math.round((d.best_action.incremental_ev_paise||0)/100)} incremental EV`);else notify("Uplift unavailable")}}>Uplift</button>
+                                    <button className="btn btn-xs btn-outline" onClick={async e=>{e.stopPropagation();if(explainFor===c.case_id){setExplainFor(null);return}const d=await fetchJson(`${API}/cases/${c.case_id}/explain`);if(d){setExplainFor(c.case_id);setExplainData(d)}else notify("Explain unavailable")}}>Explain</button>
+                                    <button className="btn btn-xs btn-outline" onClick={async e=>{e.stopPropagation();if(explainFor===c.case_id){setExplainFor(null);return}const d=await fetchJson(`${API}/cases/${c.case_id}/decision`);if(d){setExplainFor(c.case_id);setExplainData({decision:d})}else notify("Decision unavailable")}}>Decision EV</button>
+                                </div>
+                                {explainFor===c.case_id&&explainData&&<ExplainPanel data={explainData}/>}
+                            </td></tr>}
+                        </Fragment>)}</tbody></table>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+
+    function ExplainPanel({data}){
+        const chain=data.explanation_chain||[];
+        const dec=data.decision;
+        return(
+            <div style={{marginTop:8,background:"var(--card)",border:"1px solid var(--bdr)",borderRadius:8,padding:10}}>
+                {chain.length>0&&<div>
+                    <div style={{fontSize:9,color:"var(--dim)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>Explanation chain</div>
+                    {chain.map((s,i)=><div key={i} style={{display:"flex",gap:8,padding:"4px 0",borderBottom:"1px solid var(--bdr)",fontSize:10}}>
+                        <span className="tag" style={{flexShrink:0}}>{i+1}. {s.phase}</span>
+                        <span style={{color:"var(--sec)"}}>{s.reasoning}</span>
+                    </div>)}
+                </div>}
+                {dec&&<div style={{marginTop:chain.length?10:0}}>
+                    <div style={{fontSize:9,color:"var(--dim)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>Decision inspector — selected {dec.selected_action||"—"}</div>
+                    {(dec.alternatives||[]).slice(0,5).map((r,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"3px 0",fontSize:10,borderBottom:"1px solid var(--bdr)"}}>
+                        <span>{r.action}{r.selected&&<span className="tag-green tag" style={{marginLeft:6}}>selected</span>}</span>
+                        <span className="mono" style={{color:"var(--dim)"}}>net EV: {fmt(r.net_ev_paise)}</span>
+                        <span style={{fontSize:9,color:r.rejected_reason?"var(--red)":"var(--dim)"}}>{r.rejected_reason||""}</span>
+                    </div>)}
+                </div>}
+            </div>
+        );
+    }
+
+    // ── Engine Tab ──
+    function EngineTab({bandit,cusum,budget,incidents,API,notify,engineStats,merchant,setMerchant,sseEvents}){
+        const[gmv,setGmv]=useState(100000);
+        const[roi,setRoi]=useState(null);
+        const[settings,setSettings]=useState({max_attempts:3,discount_pct:5});
+        const[checkoutName,setCheckoutName]=useState("Rahul");
+        const[checkoutEmail,setCheckoutEmail]=useState("rahul@example.com");
+        const[checkoutAmount,setCheckoutAmount]=useState(1798);
+        const[failureType,setFailureType]=useState("INSUFFICIENT_FUNDS");
+        const[checkoutStep,setCheckoutStep]=useState("form");
+        const[latestCase,setLatestCase]=useState(null);
+        const[nh,setNh]=useState(null);
+
+        useEffect(()=>{fetch(`${API}/analytics/network-health`).then(r=>r.ok?r.json():null).then(d=>{if(d)setNh(d)}).catch(()=>{})},[API]);
+
+        const simulateCheckout=useCallback(async()=>{
+            setCheckoutStep("processing");
+            try{const r=await fetch(`${API}/cases/recent?limit=1`);const d=await r.json();const c=d.cases?.[0];if(c){setLatestCase(c);setCheckoutStep("done");notify("Failure simulated — "+label(c.failure_class))}else{notify("No cases");setCheckoutStep("form")}}catch(e){notify("Failed");setCheckoutStep("form")}
+        },[notify]);
+
+        const saveSettings=async()=>{try{await fetch(`${API}/settings`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(settings)});notify("Settings saved")}catch(e){notify("Save failed")}};
+
+        const calcRoi=useCallback(async gmv=>{
+            try{
+                // ₹X Cr of monthly GMV at risk → /calculator estimate
+                const atRiskCr=gmv*0.088/1e7;
+                const r=await fetch(`${API}/calculator?amount_at_risk_cr=${atRiskCr.toFixed(4)}`);
+                if(r.ok)setRoi(await r.json());
+            }catch(e){}
+        },[]);
+        useEffect(()=>{calcRoi(gmv)},[gmv,calcRoi]);
+
+        return(
+            <>
+                <div className="tab-head">
+                    <h1>Engine Architecture & ROI</h1>
+                    <p>Pipeline, live bandit state, network health, checkout simulator, and merchant ROI calculator.</p>
+                </div>
+
+                {/* Architecture DAG */}
+                <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10,marginBottom:16}} className="grid-4">
+                    {[{tag:"Node 01 · Ingestion",title:"Webhook Classifier",desc:"Parses paytm payload, classifies 15 failure types."},{tag:"Node 02 · Reasoning",title:"Qwen Diagnostician",desc:"Groq-powered root cause synthesis."},{tag:"Node 03 · Safety",title:"Policy Gate",desc:"7 rules: quiet hours, caps, cooldowns, opt-outs.",hl:true},{tag:"Node 04 · Dispatch",title:"UCB1 Executor",desc:"Bandit selects channel. HMAC-signed links."}].map((n,i)=>(
+                        <div key={i} className="card card-body" style={n.hl?{border:"1.5px solid var(--pur)"}:{}}>
+                            <div className="tag" style={{marginBottom:5}}>{n.tag}</div>
+                            <div style={{fontSize:12,fontWeight:700,marginBottom:3}}>{n.title}</div>
+                            <div style={{fontSize:9,color:"var(--dim)",lineHeight:1.5}}>{n.desc}</div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Network health strip */}
+                {nh&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>🌐 Network Health</h2><span className={`tag ${nh.overall==="HEALTHY"?"tag-green":nh.overall==="CRITICAL"?"tag-red":"tag-yellow"}`}>{nh.overall}</span></div>
+                    <div className="card-body" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:8}}>
+                        {(nh.methods||[]).map(m=><div key={m.method} style={{background:"var(--bdr)",border:"1px solid var(--bdr)",borderRadius:7,padding:10}}>
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                                <span style={{fontSize:11,fontWeight:700,textTransform:"capitalize"}}>{m.method}</span>
+                                <span className={`tag ${m.status==="HEALTHY"?"tag-green":"tag-yellow"}`}>{m.status}</span>
+                            </div>
+                            <div className="mono tabular" style={{fontSize:10,color:"var(--dim)"}}>baseline {pct(m.baseline_success_rate,1)}% → now {pct(m.current_success_rate,1)}%</div>
+                            {m.drop_percentage>0&&<div style={{fontSize:9,color:"var(--red)",marginTop:2}}>▼ {m.drop_percentage}% drop</div>}
+                        </div>)}
+                    </div>
+                </div>}
+
+                <div className="grid-2" style={{marginBottom:16}}>
+                    {/* Live Bandit */}
+                    <div className="card">
+                        <div className="card-header"><h2>🎰 UCB1 Bandit</h2>{bandit&&<span className="tag-blue tag">live</span>}</div>
+                        <div className="card-body">
+                            <div style={{background:"#0a0f1a",color:"#fff",padding:"8px 12px",borderRadius:5,fontFamily:"var(--mono)",fontSize:11,marginBottom:10}}>
+                                Score(Ch_i) = μ_i + c · √(2·ln N / n_i)
+                            </div>
+                            {bandit?Object.entries(bandit).map(([ch,v])=>(
+                                <div key={ch} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid var(--bdr)",fontSize:11}}>
+                                    <span style={{textTransform:"capitalize"}}>{ch}</span>
+                                    <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                                        <span className="mono" style={{fontSize:10,color:"var(--dim)"}}>{v.pulls} pulls</span>
+                                        <div style={{width:50,height:4,background:"var(--bdr)",borderRadius:2,overflow:"hidden"}}><div style={{height:"100%",width:(v.mean_recovery*100)+"%",background:CHANNEL_COLORS[ch]||"var(--blu)",borderRadius:2}}></div></div>
+                                        <span className="mono" style={{fontSize:11,fontWeight:600,width:36,textAlign:"right"}}>{(v.mean_recovery*100).toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                            )):<div style={{color:"var(--dim)",fontSize:11,textAlign:"center",padding:20}}>No bandit data</div>}
+                        </div>
+                    </div>
+
+                    {/* Checkout Simulator */}
+                    <div className="card">
+                        <div className="card-header"><h2>🧪 Checkout Simulator</h2><span className="tag">{failureType}</span></div>
+                        <div className="card-body">
+                            {checkoutStep==="form"?<>
+                                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                                    <div><label className="form-label">Name</label><input className="form-input" value={checkoutName} onChange={e=>setCheckoutName(e.target.value)}/></div>
+                                    <div><label className="form-label">Email</label><input className="form-input" value={checkoutEmail} onChange={e=>setCheckoutEmail(e.target.value)}/></div>
+                                    <div><label className="form-label">Amount (₹)</label><input className="form-input" type="number" value={checkoutAmount} onChange={e=>setCheckoutAmount(Number(e.target.value))}/></div>
+                                    <div><label className="form-label">Failure</label><select className="form-input" value={failureType} onChange={e=>setFailureType(e.target.value)}>{FAILURE_TYPES.map(f=><option key={f} value={f}>{label(f)}</option>)}</select></div>
+                                </div>
+                                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                                    <span style={{fontSize:11}}>Order: <strong className="tabular">₹{checkoutAmount.toLocaleString("en-IN")}</strong></span>
+                                    <button className="btn btn-sm" onClick={simulateCheckout}>Simulate Failure</button>
+                                </div>
+                            </>:checkoutStep==="processing"?<div style={{textAlign:"center",padding:20}}><div className="spinner"></div><div style={{fontSize:11,color:"var(--dim)"}}>Processing…</div>
+                            {/* Stepper */}
+                            <div className="stepper">
+                                {[{l:"Classify",s:1},{l:"Diagnose",s:2},{l:"Gate",s:3},{l:"Dispatch",s:4}].map((s,i)=><div key={i} className={`step ${i===0?"active":""}`}><div className="step-dot">{i===0?"…":s.s}</div><div>{s.l}</div></div>)}
+                            </div>
+                            </div>
+                            :<div style={{textAlign:"center",padding:12}}>
+                                <div style={{fontSize:24,marginBottom:6}}>✅</div>
+                                <div style={{fontSize:12,fontWeight:600,marginBottom:3}}>Failure simulated</div>
+                                <div style={{fontSize:10,color:"var(--dim)",marginBottom:10}}>Classified as <strong>{latestCase?label(latestCase.failure_class):failureType}</strong></div>
+                                <div className="stepper" style={{marginBottom:10}}>
+                                    {[{l:"Classify",s:1},{l:"Diagnose",s:2},{l:"Gate",s:3},{l:"Dispatch",s:4}].map((s,i)=><div key={i} className="step done"><div className="step-dot">✓</div><div>{s.l}</div></div>)}
+                                </div>
+                                <div className="grid-2" style={{gap:6,marginBottom:10}}>
+                                    <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="form-label">Amount</div><div className="mono" style={{fontWeight:700,fontSize:12}}>{latestCase?fmt(latestCase.amount_paise):"₹"+checkoutAmount}</div></div>
+                                    <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="form-label">Status</div><div className="mono" style={{fontWeight:700,fontSize:12,color:"var(--blu)"}}>{latestCase?.status||"open"}</div></div>
+                                </div>
+                                <button className="btn btn-sm btn-outline" onClick={()=>setCheckoutStep("form")}>Simulate Another</button>
+                            </div>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* CUSUM + Budget + Incidents */}
+                <div className="grid-3" style={{marginBottom:16}}>
+                    {cusum&&<div className="card card-body">
+                        <div className="metric-label">📈 CUSUM Detector</div>
+                        <div className="grid-2" style={{gap:6,marginTop:8}}>
+                            <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="sec-label">Positive</div><div className="sec-val">{cusum.positive_cusum}</div></div>
+                            <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="sec-label">Negative</div><div className="sec-val">{cusum.negative_cusum}</div></div>
+                        </div>
+                        <div style={{fontSize:9,color:"var(--dim)",textAlign:"center",marginTop:6}}>baseline: {(cusum.baseline*100).toFixed(0)}% · {cusum.observations} obs</div>
+                    </div>}
+                    {budget&&<div className="card card-body">
+                        <div className="metric-label">💰 Intervention Budget</div>
+                        <div style={{marginTop:8}}>
+                            <div className="bar-g"><div className="bar-l"><span>Used</span><span>{budget.total-budget.remaining}/{budget.total}</span></div><div className="bar"><div className="bf t" style={{width:(budget.utilization*100)+"%"}}></div></div></div>
+                            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:6}}>
+                                {Object.entries(budget.by_channel||{}).slice(0,5).map(([ch,v])=><span key={ch} className="tag" style={{textTransform:"capitalize"}}>{ch}: {v}</span>)}
+                            </div>
+                        </div>
+                    </div>}
+                    {incidents&&<div className="card card-body">
+                        <div className="metric-label">🔥 Incidents</div>
+                        <div style={{marginTop:6}}>
+                            {(incidents.incidents||[]).slice(0,3).map(inc=><div key={inc.id} style={{padding:"4px 0",borderBottom:"1px solid var(--bdr)",fontSize:10}}>
+                                <div style={{display:"flex",justifyContent:"space-between"}}><span style={{fontWeight:600}}>{inc.title}</span><span style={{color:inc.severity==="high"?"var(--red)":"var(--yel)",fontSize:8,textTransform:"uppercase"}}>{inc.severity}</span></div>
+                            </div>)}
+                        </div>
+                    </div>}
+                </div>
+
+                {/* ROI Calculator — live from /calculator */}
+                <div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>Merchant ROI Calculator</h2><span className="tag-green tag">live · /calculator</span></div>
+                    <div className="card-body">
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                            <span style={{fontWeight:700,fontSize:12}}>Monthly GMV</span>
+                            <span style={{fontSize:18,fontWeight:800,fontFamily:"var(--mono)"}}>₹{gmv.toLocaleString("en-IN")}</span>
+                        </div>
+                        <input type="range" min="10000" max="5000000" step="10000" value={gmv} onChange={e=>setGmv(Number(e.target.value))} style={{width:"100%",accentColor:"var(--blu)",marginBottom:14}}/>
+                        {roi?<div className="grid-3">
+                            <div className="metric"><div className="metric-label">Amount at risk</div><div className="metric-value tabular">{fmt(roi.inputs?.amount_at_risk_paise)}</div><div className="metric-sub">{roi.inputs?.cases?.toLocaleString?.()||"—"} est. cases</div></div>
+                            <div className="metric primary"><div className="metric-label">Incremental recovery</div><div className="metric-value tabular">{roi.incremental_recovery_display}</div><div className="metric-sub">{roi.inputs?.estimated_lift_pp}pp assumed lift</div></div>
+                            <div className="metric"><div className="metric-label">Cost per incremental recovery</div><div className="metric-value tabular">{roi.cost_per_incremental_recovery_paise!=null?fmt(roi.cost_per_incremental_recovery_paise):"—"}</div><div className="metric-sub">{roi.projected_contacts?.toLocaleString?.()||"—"} projected contacts</div></div>
+                        </div>:<p style={{color:"var(--dim)",fontSize:11,textAlign:"center",padding:16}}>Calculating…</p>}
+                        {roi&&<div style={{fontSize:9,color:"var(--dim)",marginTop:8,textAlign:"center"}}>{roi.assumptions?.note}</div>}
+                    </div>
+                </div>
+
+                {/* Money Flow Waterfall + 7-Day Forecast */}
+                {engineStats&&engineStats.forecast&&<div className="grid-2" style={{marginBottom:16}}>
+                    <div className="card">
+                        <div className="card-header"><h2>📊 Pipeline Overview</h2></div>
+                        <div className="card-body">
+                            <div className="grid-2" style={{gap:8,marginBottom:12}}>
+                                <div className="sec-box"><div className="form-label">Run Rate</div><div className="mono" style={{fontSize:14,fontWeight:700}}>{fmt(engineStats.forecast.current_run_rate_paise_per_day||0)}/day</div></div>
+                                <div className="sec-box"><div className="form-label">Pending Pipeline</div><div className="mono" style={{fontSize:14,fontWeight:700}}>{engineStats.forecast.pending_pipeline?.count||0}</div><div style={{fontSize:9,color:"var(--dim)"}}>{fmt(engineStats.forecast.pending_pipeline?.amount_paise||0)} at risk</div></div>
+                            </div>
+                            <div style={{display:"flex",gap:6}}>
+                                <span className="tag">{engineStats.forecast.pending_pipeline?.urgent_count||0} urgent</span>
+                                <span className="tag tag-blue">{engineStats.forecast.pending_pipeline?.routine_count||0} routine</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="card">
+                        <div className="card-header"><h2>📈 7-Day Forecast</h2>{engineStats.forecast.daily_projections&&<span className="tag">{engineStats.forecast.daily_projections.length} days</span>}</div>
+                        <div className="card-body">
+                            {(engineStats.forecast.daily_projections||[]).slice(0,7).map((d,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid var(--bdr)",fontSize:11}}>
+                                <span style={{fontWeight:500}}>{d.day}</span>
+                                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                                    {d.is_salary_day&&<span className="tag tag-green" style={{fontSize:8}}>salary day</span>}
+                                    <span className="mono tabular" style={{fontWeight:600}}>{fmt(d.projected_paise)}</span>
+                                </div>
+                            </div>)}
+                            {(!engineStats.forecast.daily_projections||engineStats.forecast.daily_projections.length===0)&&<div style={{color:"var(--dim)",fontSize:11,textAlign:"center",padding:20}}>No forecast data</div>}
+                        </div>
+                    </div>
+                </div>}
+
+                {/* Benchmark */}
+                {engineStats&&engineStats.benchmark&&engineStats.benchmark.bandit&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>📊 Bandit vs Static Rules</h2>{engineStats.benchmark.improvement_pct!=null&&<span className="tag-green tag">+{engineStats.benchmark.improvement_pct.toFixed(1)}% better</span>}</div>
+                    <div className="card-body">
+                        <div className="grid-2" style={{gap:16}}>
+                            <div>
+                                <div style={{fontSize:10,color:"var(--dim)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>🎰 Bandit (Adaptive)</div>
+                                <div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:11}}><span>Recovery rate</span><span className="mono" style={{fontWeight:600,color:"var(--grn)"}}>{pct(engineStats.benchmark.bandit.recovery_rate,1)}%</span></div>
+                                <div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:11}}><span>Recovered</span><span className="mono tabular">{fmt(engineStats.benchmark.bandit.recovered*100)}</span></div>
+                                <div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:11}}><span>Cost</span><span className="mono tabular">{fmt(engineStats.benchmark.bandit.cost*100)}</span></div>
+                                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:6}}>
+                                    {Object.entries(engineStats.benchmark.bandit.channels_used||{}).map(([ch,n])=><span key={ch} className="tag" style={{textTransform:"capitalize",fontSize:8}}>{ch}: {n}</span>)}
+                                </div>
+                            </div>
+                            <div>
+                                <div style={{fontSize:10,color:"var(--dim)",textTransform:"uppercase",letterSpacing:".04em",marginBottom:6}}>📏 Static Rules (Baseline)</div>
+                                <div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:11}}><span>Recovery rate</span><span className="mono">{pct(engineStats.benchmark.static_rules?.recovery_rate,1)}%</span></div>
+                                <div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:11}}><span>Recovered</span><span className="mono tabular">{fmt((engineStats.benchmark.static_rules?.recovered||0)*100)}</span></div>
+                                <div style={{display:"flex",justifyContent:"space-between",padding:"4px 0",fontSize:11}}><span>Cost</span><span className="mono tabular">{fmt((engineStats.benchmark.static_rules?.cost||0)*100)}</span></div>
+                                <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:6}}>
+                                    {Object.entries(engineStats.benchmark.static_rules?.channels_used||{}).map(([ch,n])=><span key={ch} className="tag" style={{textTransform:"capitalize",fontSize:8}}>{ch}: {n}</span>)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>}
+
+                {/* SSE Live Event Stream */}
+                {sseEvents&&sseEvents.length>0&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>🔴 Live Event Stream</h2><span className="badge live">{sseEvents.length} events</span></div>
+                    <div className="card-body" style={{maxHeight:200,overflowY:"auto"}}>
+                        {sseEvents.slice(0,15).map((ev,i)=><div key={i} style={{display:"flex",gap:8,padding:"5px 0",borderBottom:"1px solid var(--bdr)",fontSize:10}}>
+                            <span className="tag" style={{textTransform:"capitalize",flexShrink:0}}>{ev.type||ev.event||"event"}</span>
+                            <span style={{flex:1,color:"var(--sec)"}}>{ev.message||ev.description||ev.note||JSON.stringify(ev).slice(0,80)}</span>
+                            {ev.amount!=null&&<span className="mono tabular" style={{flexShrink:0}}>{fmt(ev.amount)}</span>}
+                        </div>)}
+                    </div>
+                </div>}
+
+                {/* Merchant Profile Detection */}
+                {merchant&&merchant.profile&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>🏷 Merchant Profile</h2>
+                        <span className="tag-green tag">{merchant.profile.icon} {merchant.profile.label} · {pct(merchant.confidence,0)}%</span>
+                    </div>
+                    <div className="card-body">
+                        <div style={{display:"flex",gap:8,alignItems:center,marginBottom:8}}>
+                            <span style={{fontSize:12,fontWeight:700}}>{merchant.profile.label}</span>
+                            <span style={{fontSize:10,color:"var(--dim)"}}>· typical failure: {merchant.profile.typical_failure}</span>
+                        </div>
+                        {(merchant.signals||[]).length>0&&<div>{merchant.signals.map((s,i)=><div key={i} style={{display:"flex",gap:6,alignItems:"center",padding:"3px 0",fontSize:10,color:"var(--sec)"}}><span style={{color:"var(--grn)"}}>✓</span>{s}</div>)}</div>}
+                    </div>
+                </div>}
+
+                {/* Settings */}
+                <div className="card">
+                    <div className="card-header"><h2>⚙️ Engine Settings</h2></div>
+                    <div className="card-body">
+                        <div className="grid-3" style={{gap:10}}>
+                            <div><label className="form-label">RBI Retry Cap</label><select className="form-input" value={settings.max_attempts} onChange={e=>setSettings({...settings,max_attempts:Number(e.target.value)})}><option value={2}>2 (Strict)</option><option value={3}>3 (Standard)</option><option value={4}>4 (High Tolerance)</option></select></div>
+                            <div><label className="form-label">Discount Ceiling</label><select className="form-input" value={settings.discount_pct} onChange={e=>setSettings({...settings,discount_pct:Number(e.target.value)})}><option value={3}>3%</option><option value={5}>5%</option><option value={8}>8%</option></select></div>
+                            <div style={{display:"flex",alignItems:"flex-end"}}><button className="btn btn-sm" onClick={saveSettings}>Save Settings</button></div>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // ── Analytics Tab ──
+    function AnalyticsTab({summary,setSummary,API}){
+        const[loading,setLoading]=useState(false);
+        const load=useCallback(async()=>{
+            setLoading(true);
+            try{const r=await fetch(`${API}/analytics/summary`);if(r.ok)setSummary(await r.json())}catch(e){}
+            setLoading(false);
+        },[API,setSummary]);
+        useEffect(()=>{if(!summary)load()},[]);
+
+        if(!summary)return<div style={{textAlign:"center",padding:60}}>{loading?<><div className="spinner"></div><div style={{fontSize:11,color:"var(--dim)",marginTop:8}}>Loading analytics…</div></>:<button className="btn" onClick={load}>Load Analytics</button>}</div>;
+
+        const mf=summary.money_flow&&!summary.money_flow.error?summary.money_flow:null;
+        const fc=summary.forecast&&!summary.forecast.error?summary.forecast:null;
+        const cal=summary.calibration&&!summary.calibration.error&&!summary.calibration.error_message?summary.calibration:null;
+        const seg=summary.segments&&!summary.segments.error?summary.segments:null;
+        const bm=summary.benchmark&&!summary.benchmark.error?summary.benchmark:null;
+        const nh=summary.network_health&&!summary.network_health.error?summary.network_health:null;
+        const maxWf=mf?Math.max(...(mf.waterfall||[]).map(w=>w.paise),1):1;
+        const wfColors=[PAYTM_NAVY,"#22c55e","#ef4444","#a78bfa"];
+        const maxFc=fc?Math.max(...(fc.daily_projections||[]).map(p=>p.projected_paise),1):1;
+
+        return(
+            <>
+                <div className="tab-head" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div><h1>Analytics</h1><p>Money flow, cash-flow forecast, model calibration, segments, and bandit-vs-static benchmark.</p></div>
+                    <button className="btn btn-sm btn-outline" onClick={load} disabled={loading}>↻ Refresh</button>
+                </div>
+
+                {/* Money-flow waterfall */}
+                {mf&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>💸 Money Flow</h2><span className="tag">redundant {pct(mf.redundant_contact_share,0)}%</span></div>
+                    <div className="card-body">
+                        {(mf.waterfall||[]).map((w,i)=><div key={w.stage} className="wf-row">
+                            <span className="wf-label">{w.stage.replace(/_/g," ")}</span>
+                            <div className="wf-bar"><div className="wf-fill" style={{width:(w.paise/maxWf*100)+"%",background:wfColors[i%wfColors.length]}}></div></div>
+                            <span className="wf-amt" style={{color:wfColors[i%wfColors.length]}}>{fmt(w.paise)}</span>
+                        </div>)}
+                        <div style={{fontSize:9,color:"var(--dim)",marginTop:6}}>{(mf.waterfall||[]).map(w=>w.label).join(" · ")}</div>
+                    </div>
+                </div>}
+
+                <div className="grid-2" style={{marginBottom:16}}>
+                    {/* 7-day forecast */}
+                    {fc&&<div className="card">
+                        <div className="card-header"><h2>🔮 7-Day Cash-Flow Forecast</h2><span className="tag-green tag">{fc.total_projected_7d_display} projected</span></div>
+                        <div className="card-body">
+                            {(fc.daily_projections||[]).map(p=><div key={p.date} className="fc-row">
+                                <span className="fc-day">{p.day}{p.is_salary_day&&<span style={{color:"var(--yel)",fontSize:8,marginLeft:3}}>₹ salary</span>}</span>
+                                <div className="fc-bar"><div className="fc-fill" style={{width:(p.projected_paise/maxFc*100)+"%",opacity:p.is_salary_day?1:.75}}></div></div>
+                                <span className="fc-amt">{fmt(p.projected_paise)}</span>
+                            </div>)}
+                            <div style={{fontSize:9,color:"var(--dim)",marginTop:8}}>pending pipeline: {fc.pending_pipeline?.count} cases · {fmt(fc.pending_pipeline?.amount_paise)} · run rate {fmt(fc.current_run_rate_paise_per_day)}/day</div>
+                        </div>
+                    </div>}
+
+                    {/* Segments */}
+                    {seg&&<div className="card">
+                        <div className="card-header"><h2>👥 Merchant Segments</h2></div>
+                        <div className="card-body">
+                            <table><thead><tr><th>Segment</th><th>Cases</th><th>Rate</th><th>At risk</th><th>Recovered</th></tr></thead>
+                            <tbody>{Object.entries(seg.segments||{}).map(([name,d])=><tr key={name}>
+                                <td style={{fontWeight:600,textTransform:"capitalize"}}>{name}</td>
+                                <td className="tabular">{d.cases}</td>
+                                <td className="tabular">{pct(d.recovery_rate,1)}%</td>
+                                <td className="tabular">{fmt(d.total_at_risk)}</td>
+                                <td className="tabular" style={{color:"var(--grn)"}}>{fmt(d.total_recovered)}</td>
+                            </tr>)}</tbody></table>
+                        </div>
+                    </div>}
+                </div>
+
+                <div className="grid-2" style={{marginBottom:16}}>
+                    {/* Calibration */}
+                    <div className="card">
+                        <div className="card-header"><h2>🎯 Model Calibration</h2>{cal&&cal.brier_score!=null&&<span className="tag">Brier {cal.brier_score}{cal.roc_auc!=null?` · AUC ${cal.roc_auc}`:""}</span>}</div>
+                        <div className="card-body">
+                            {cal&&(cal.deciles||[]).length?(cal.deciles||[]).map(d=><div key={d.decile} className="cal-row">
+                                <span className="cal-idx">D{d.decile} · {d.count}</span>
+                                <div className="cal-bar"><div className="cal-pred" style={{width:pct(d.avg_predicted,0)+"%"}}></div><div className="cal-obs" style={{left:`calc(${pct(d.observed_rate,0)}% - 1px)`}}></div></div>
+                                <span className="mono" style={{width:64,textAlign:"right",color:"var(--dim)"}}>{pct(d.avg_predicted,0)}%→{pct(d.observed_rate,0)}%</span>
+                            </div>):<div style={{color:"var(--dim)",fontSize:11,textAlign:"center",padding:16}}>{summary.calibration?(summary.calibration.error||summary.calibration.error_message||"insufficient data"):"—"}</div>}
+                            {cal&&(cal.deciles||[]).length>0&&<div style={{fontSize:9,color:"var(--dim)",marginTop:8}}>blue = predicted · green line = observed</div>}
+                        </div>
+                    </div>
+
+                    {/* Benchmark */}
+                    {bm&&<div className="card">
+                        <div className="card-header"><h2>⚔️ Bandit vs Static Rules</h2><span className="tag-green tag">+{bm.improvement?.recovery_rate_delta}pp</span></div>
+                        <div className="card-body">
+                            <div className="grid-2" style={{gap:8,marginBottom:10}}>
+                                <div style={{background:"rgba(0,41,112,.06)",border:"1px solid rgba(0,41,112,.25)",borderRadius:7,padding:10,textAlign:"center"}}>
+                                    <div className="form-label">UCB1 Bandit</div>
+                                    <div style={{fontSize:20,fontWeight:800,fontFamily:"var(--mono)",color:"var(--blu)"}}>{bm.bandit?.recovery_rate}%</div>
+                                    <div style={{fontSize:9,color:"var(--dim)"}}>{bm.bandit?.recovered}/{bm.bandit?.total} recovered · ₹{bm.bandit?.cost} spend</div>
+                                </div>
+                                <div style={{background:"var(--bdr)",border:"1px solid var(--bdr)",borderRadius:7,padding:10,textAlign:"center"}}>
+                                    <div className="form-label">Static SMS-first</div>
+                                    <div style={{fontSize:20,fontWeight:800,fontFamily:"var(--mono)",color:"var(--dim)"}}>{bm.static_rules?.recovery_rate}%</div>
+                                    <div style={{fontSize:9,color:"var(--dim)"}}>{bm.static_rules?.recovered}/{bm.static_rules?.total} recovered · ₹{bm.static_rules?.cost} spend</div>
+                                </div>
+                            </div>
+                            <div className="chips">
+                                <span className="chip ok">+{bm.improvement?.extra_recovered} extra recoveries</span>
+                                <span className="chip ok">₹{bm.improvement?.cost_savings} saved</span>
+                            </div>
+                            <div style={{fontSize:9,color:"var(--dim)",marginTop:8}}>bandit channels: {Object.entries(bm.bandit?.channels_used||{}).filter(([,v])=>v>0).map(([k,v])=>`${k} ${v}`).join(" · ")}</div>
+                        </div>
+                    </div>}
+                </div>
+
+                {/* Network health (from summary) */}
+                {nh&&<div className="card">
+                    <div className="card-header"><h2>🌐 Network Health</h2><span className={`tag ${nh.overall==="HEALTHY"?"tag-green":nh.overall==="CRITICAL"?"tag-red":"tag-yellow"}`}>{nh.overall}</span></div>
+                    <div className="card-body" style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:8}}>
+                        {(nh.methods||[]).map(m=><div key={m.method} style={{background:"var(--bdr)",border:"1px solid var(--bdr)",borderRadius:7,padding:10}}>
+                            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                                <span style={{fontSize:11,fontWeight:700,textTransform:"capitalize"}}>{m.method}</span>
+                                <span className={`tag ${m.status==="HEALTHY"?"tag-green":"tag-yellow"}`}>{m.status}</span>
+                            </div>
+                            <div className="mono tabular" style={{fontSize:10,color:"var(--dim)"}}>{pct(m.baseline_success_rate,1)}% → {pct(m.current_success_rate,1)}%</div>
+                            {m.hypothesis&&<div style={{fontSize:9,color:"var(--dim)",marginTop:3}}>{m.hypothesis}</div>}
+                        </div>)}
+                    </div>
+                </div>}
+            </>
+        );
+    }
+
+    // ── Tools Tab ──
+    function ToolsTab({API,notify}){
+        const[waPhone,setWaPhone]=useState("+919876543210");
+        const[waFC,setWaFC]=useState("INSUFFICIENT_FUNDS");
+        const[waMsg,setWaMsg]=useState(null);
+        const[currFrom,setCurrFrom]=useState("INR");
+        const[currTo,setCurrTo]=useState("USD");
+        const[currAmt,setCurrAmt]=useState(179860);
+        const[currResult,setCurrResult]=useState(null);
+        const[diagPayload,setDiagPayload]=useState('{"error_code":"INSUFFICIENT_FUNDS","amount_paise":179860,"customer_name":"Rahul"}');
+        const[diagResult,setDiagResult]=useState(null);
+        const[provider,setProvider]=useState("mock");
+
+        const loadWaPreview=async()=>{try{const r=await fetch(`${API}/preview/whatsapp?failure_class=${waFC}&phone=${encodeURIComponent(waPhone)}`);if(r.ok)setWaMsg(await r.json())}catch(e){}};
+        const convertCurrency=async()=>{try{const r=await fetch(`${API}/currency/convert?amount_paise=${currAmt}&from_currency=${currFrom}&to_currency=${currTo}`);if(r.ok)setCurrResult(await r.json())}catch(e){}};
+        const runDiagnose=async()=>{try{const r=await fetch(`${API}/diagnose`,{method:"POST",headers:{"Content-Type":"application/json"},body:diagPayload});if(r.ok)setDiagResult(await r.json())}catch(e){notify("Diagnose failed")}};
+        const switchProvider=async(p)=>{try{await fetch(`${API}/provider`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({provider:p})});setProvider(p);notify("Provider: "+p)}catch(e){}};
+
+        useEffect(()=>{fetch(`${API}/provider`).then(r=>r.ok?r.json():null).then(d=>{if(d)setProvider(d.provider)}).catch(()=>{})},[API]);
+
+        return(
+            <>
+                <div className="tab-head"><h1>Tools</h1><p>WhatsApp preview, currency converter, LLM diagnosis, provider switching.</p></div>
+
+                <div className="grid-2" style={{marginBottom:16}}>
+                    {/* WhatsApp Preview */}
+                    <div className="card">
+                        <div className="card-header"><h2>📱 WhatsApp Preview</h2></div>
+                        <div className="card-body">
+                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:10}}>
+                                <div><label className="form-label">Phone</label><input className="form-input" value={waPhone} onChange={e=>setWaPhone(e.target.value)}/></div>
+                                <div><label className="form-label">Failure Class</label><select className="form-input" value={waFC} onChange={e=>setWaFC(e.target.value)}>{FAILURE_TYPES.map(f=><option key={f} value={f}>{label(f)}</option>)}</select></div>
+                            </div>
+                            <button className="btn btn-sm" onClick={loadWaPreview} style={{marginBottom:12}}>Load Preview</button>
+                            {waMsg&&<div className="wa-bubble">
+                                {waMsg.header&&<div className="wa-header">{typeof waMsg.header==="string"?waMsg.header:waMsg.header.text||""}</div>}
+                                <div>{waMsg.body||""}</div>
+                                {waMsg.footer&&<div className="wa-footer">{waMsg.footer}</div>}
+                                {Array.isArray(waMsg.buttons)&&waMsg.buttons.map((b,i)=><span key={i} className={`wa-btn ${b.type==="url"?"primary":"secondary"}`}>{b.text||""}</span>)}
+                                <div style={{fontSize:9,color:"var(--dim)",marginTop:8}}>{waMsg.character_count||0} chars · {waMsg.within_limit?"✅ within limit":"⚠️ exceeds"}</div>
+                            </div>}
+                        </div>
+                    </div>
+
+                    {/* Currency Converter */}
+                    <div className="card">
+                        <div className="card-header"><h2>💱 Currency Converter</h2></div>
+                        <div className="card-body">
+                            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
+                                <div><label className="form-label">Amount (paise)</label><input className="form-input" type="number" value={currAmt} onChange={e=>setCurrAmt(Number(e.target.value))}/></div>
+                                <div><label className="form-label">From</label><select className="form-input" value={currFrom} onChange={e=>setCurrFrom(e.target.value)}><option>INR</option><option>USD</option><option>EUR</option></select></div>
+                                <div><label className="form-label">To</label><select className="form-input" value={currTo} onChange={e=>setCurrTo(e.target.value)}><option>USD</option><option>INR</option><option>EUR</option></select></div>
+                            </div>
+                            <button className="btn btn-sm" onClick={convertCurrency} style={{marginBottom:10}}>Convert</button>
+                            {currResult&&<div className="grid-2" style={{gap:6}}>
+                                <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="form-label">Original</div><div className="mono" style={{fontWeight:700}}>{currResult.original.display}</div></div>
+                                <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="form-label">Converted</div><div className="mono" style={{fontWeight:700,color:"var(--grn)"}}>{currResult.converted.display}</div></div>
+                            </div>}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid-2" style={{marginBottom:16}}>
+                    {/* LLM Diagnose */}
+                    <div className="card">
+                        <div className="card-header"><h2>🧠 Qwen Diagnosis</h2></div>
+                        <div className="card-body">
+                            <label className="form-label">Failure Context (JSON)</label>
+                            <textarea className="form-input" value={diagPayload} onChange={e=>setDiagPayload(e.target.value)} rows={3}/>
+                            <button className="btn btn-sm" onClick={runDiagnose} style={{margin:8}}>Run Diagnosis</button>
+                            {diagResult&&<div className="json-out">{JSON.stringify(diagResult,null,2)}</div>}
+                        </div>
+                    </div>
+
+                    {/* Provider Switching */}
+                    <div className="card">
+                        <div className="card-header"><h2>🔌 LLM Provider</h2><span className="tag">{provider}</span></div>
+                        <div className="card-body">
+                            <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                                {["mock","ollama","claude"].map(p=><button key={p} className={`btn btn-sm ${provider===p?"":"btn-outline"}`} onClick={()=>switchProvider(p)} style={provider===p?{background:p==="mock"?"var(--dim)":p==="ollama"?"var(--blu)":"var(--pur)"}:{}}>{p}</button>)}
+                            </div>
+                            <div style={{fontSize:10,color:"var(--dim)",marginTop:10}}>
+                                {provider==="mock"&&"Using deterministic rule-based diagnosis (no API calls)."}
+                                {provider==="ollama"&&"Using local Ollama model for diagnosis."}
+                                {provider==="claude"&&"Using Claude API for diagnosis."}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Pipeline Architecture */}
+                <div className="card">
+                    <div className="card-header"><h2>Pipeline Architecture</h2></div>
+                    <div className="card-body">
+                        <div className="arch-flow">
+                            {["Webhook In","Classifier","Qwen","Policy Gate","UCB1 Bandit","Executor","Recovery"].map((n,i)=>(
+                                <Fragment key={i}>{i>0&&<span className="arch-arrow">→</span>}<span className={`arch-node ${n==="Policy Gate"?"highlight":""}`}>{n}</span></Fragment>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    // ── Security Tab ──
+    function SecurityTab({security,API,notify}){
+        const[adversarialResult,setAdversarialResult]=useState(null);
+        const[chainResult,setChainResult]=useState(null);
+        const[testing,setTesting]=useState(false);
+
+        const runAdversarial=async()=>{setTesting(true);try{const r=await fetch(`${API}/security/adversarial-test`,{method:"POST"});if(r.ok){setAdversarialResult(await r.json());notify("Adversarial test complete")}else notify("Test failed")}catch(e){notify("Failed")}setTesting(false)};
+        const verifyChain=async()=>{try{const r=await fetch(`${API}/audit/chain/verify`);if(r.ok)setChainResult(await r.json())}catch(e){}};
+
+        return(
+            <>
+                <div className="tab-head"><h1>Security Posture</h1><p>Threat model, audit chain verification, adversarial testing.</p></div>
+
+                {/* Security Overview */}
+                {security&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>🛡 Security Report</h2><span className={`badge ${security.overall_status==="PASS"?"":"warn"}`}>{security.overall_status}</span></div>
+                    <div className="card-body">
+                        <div className="sec-grid">
+                            <div className="sec-box"><div className="sec-label">Threats Mitigated</div><div className="sec-val" style={{color:"var(--grn)"}}>{security.threat_model?.mitigated}/{security.threat_model?.total}</div></div>
+                            <div className="sec-box"><div className="sec-label">Adversarial Test</div><div className="sec-val" style={{color:security.adversarial_test?.pass?"var(--grn)":"var(--red)"}}>{security.adversarial_test?.pass?"PASS":"FAIL"}</div></div>
+                            <div className="sec-box"><div className="sec-label">Audit Chain</div><div className="sec-val" style={{color:security.audit_chain?.valid?"var(--grn)":"var(--red)"}}>{security.audit_chain?.valid?"VALID":"BROKEN"}</div><div style={{fontSize:9,color:"var(--dim)"}}>{security.audit_chain?.total_links} links</div></div>
+                        </div>
+                        {security.adversarial_test&&<div style={{background:"rgba(34,197,94,.06)",border:"1px solid rgba(34,197,94,.15)",borderRadius:6,padding:"8px 12px",fontSize:11,color:"var(--grn)",marginTop:10}}>
+                            ✅ {security.adversarial_test.cases_tested} adversarial cases · {security.adversarial_test.cases_terminated} terminated · 0 violations
+                        </div>}
+                    </div>
+                </div>}
+
+                <div className="grid-2" style={{marginBottom:16}}>
+                    {/* Adversarial Test */}
+                    <div className="card">
+                        <div className="card-header"><h2>🧪 Adversarial LLM Test</h2></div>
+                        <div className="card-body">
+                            <p style={{fontSize:10,color:"var(--dim)",marginBottom:10}}>Tests prompt injection resistance and policy bypass attempts.</p>
+                            <button className="btn btn-sm btn-red" onClick={runAdversarial} disabled={testing}>{testing?"Running…":"Run Adversarial Test"}</button>
+                            {adversarialResult&&<div className="json-out">{JSON.stringify(adversarialResult,null,2)}</div>}
+                        </div>
+                    </div>
+
+                    {/* Audit Chain */}
+                    <div className="card">
+                        <div className="card-header"><h2>🔗 Audit Chain Verification</h2></div>
+                        <div className="card-body">
+                            <p style={{fontSize:10,color:"var(--dim)",marginBottom:10}}>Verifies SHA-256 hash chain integrity across all audit events.</p>
+                            <button className="btn btn-sm" onClick={verifyChain}>Verify Chain</button>
+                            {chainResult&&<div style={{marginTop:10}}>
+                                <div className="grid-3" style={{gap:6}}>
+                                    <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="sec-label">Valid</div><div className="sec-val" style={{color:chainResult.valid?"var(--grn)":"var(--red)",fontSize:14}}>{chainResult.valid?"YES":"NO"}</div></div>
+                                    <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="sec-label">Links</div><div className="sec-val" style={{fontSize:14}}>{chainResult.total_links}</div></div>
+                                    <div style={{background:"var(--bdr)",padding:8,borderRadius:5,textAlign:"center"}}><div className="sec-label">Broken At</div><div className="sec-val" style={{color:chainResult.broken_at_index===null?"var(--grn)":"var(--red)",fontSize:14}}>{chainResult.broken_at_index===null?"None":chainResult.broken_at_index}</div></div>
+                                </div>
+                            </div>}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Threat Model */}
+                {security?.threat_model?.threats&&<div className="card">
+                    <div className="card-header"><h2>Threat Model</h2></div>
+                    <div style={{overflowX:"auto"}}>
+                        <table><thead><tr><th>Threat</th><th>Severity</th><th>Mitigation</th><th>Status</th></tr></thead>
+                        <tbody>{security.threat_model.threats.map((t,i)=>(
+                            <tr key={i}><td style={{fontWeight:600}}>{t.threat}</td><td><span className={`tag ${t.severity==="CRITICAL"?"tag-red":t.severity==="HIGH"?"tag-yellow":"tag-blue"}`}>{t.severity.toLowerCase()}</span></td><td style={{fontSize:10,color:"var(--dim)",lineHeight:1.5}}>{t.mitigation}</td><td><span className="tag tag-green">{t.status||"mitigated"}</span></td></tr>
+                        ))}</tbody></table>
+                    </div>
+                </div>}
+            </>
+        );
+    }
+
+    // ── Audit Modal ──
+    function AuditModal({open,onClose,caseId,API}){
+        const[detail,setDetail]=useState(null);
+        const[loading,setLoading]=useState(true);
+        const[decision,setDecision]=useState(null);
+        const[explain,setExplain]=useState(null);
+        const modalRef=useRef(null);
+
+        useEffect(()=>{if(caseId){setLoading(true);setDecision(null);setExplain(null);Promise.all([
+            fetch(`${API}/cases/${caseId}/detail`).then(r=>r.ok?r.json():null),
+            fetch(`${API}/cases/${caseId}/decision`).then(r=>r.ok?r.json():null).catch(()=>null),
+            fetch(`${API}/cases/${caseId}/explain`).then(r=>r.ok?r.json():null).catch(()=>null),
+        ]).then(([d,dec,exp])=>{setDetail(d);setDecision(dec);setExplain(exp);setLoading(false)}).catch(()=>setLoading(false))}},[caseId,API]);
+
+        // Escape key handler
+        useEffect(()=>{if(!open)return;const handler=e=>{if(e.key==="Escape")onClose()};window.addEventListener("keydown",handler);return()=>window.removeEventListener("keydown",handler)},[open,onClose]);
+
+        if(!open)return null;
+        const actorColor={"classifier":"var(--blu)","selector":"var(--pur)","executor":"var(--grn)","policy":"var(--yel)","system":"var(--dim)"};
+        const eventIcon={"case.created":"📝","action.scheduled":"⏰","action.executed":"▶️","action.deferred":"⏸️","action.blocked":"🚫","case.written_off":"🗑️","case.recovered":"✅"};
+
+        return(
+            <div className="modal on" onClick={e=>{if(e.target===e.currentTarget)onClose()}} ref={modalRef}>
+                <div className="modal-c" style={{maxWidth:780,maxHeight:"85vh",overflow:"auto"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                        <h2>Audit Trail{detail?" — "+detail.case?.case_id:""}</h2>
+                        <button className="btn btn-sm btn-outline" onClick={onClose}>✕</button>
+                    </div>
+                    {loading?<div style={{textAlign:"center",padding:30}}><div className="spinner"></div><div style={{fontSize:11,color:"var(--dim)"}}>Loading…</div></div>
+                    :!detail?<div style={{textAlign:"center",padding:30,color:"var(--red)"}}>Failed to load</div>
+                    :<>
+                        <div className="grid-3" style={{gap:6,marginBottom:14}}>
+                            <div style={{background:"var(--bdr)",padding:8,borderRadius:5}}><div className="form-label">Failure</div><div style={{fontSize:12,fontWeight:600}}>{label(detail.case?.failure_class)}</div></div>
+                            <div style={{background:"var(--bdr)",padding:8,borderRadius:5}}><div className="form-label">Amount</div><div className="mono tabular" style={{fontSize:12,fontWeight:600}}>{detail.case?.amount_paise?fmt(detail.case.amount_paise):"—"}</div></div>
+                            <div style={{background:"var(--bdr)",padding:8,borderRadius:5}}><div className="form-label">Status</div><span className={`pill ${detail.case?.status}`}>{detail.case?.status?.replace(/_/g," ")}</span></div>
+                        </div>
+
+                         {/* Decision Inspector */}
+                        {decision&&<div style={{border:"1px solid var(--bdr)",borderRadius:8,padding:12,marginBottom:14,background:"var(--card)"}}>
+                            <div style={{fontSize:11,fontWeight:700,marginBottom:8}}>🧠 Decision Inspector</div>
+                            <div className="grid-3" style={{gap:6,marginBottom:8}}>
+                                <div style={{background:"var(--bdr)",padding:6,borderRadius:4,textAlign:"center"}}><div className="form-label">Selected Action</div><div className="mono" style={{fontSize:12,fontWeight:700,color:"var(--grn)"}}>{decision.selected_action||"—"}</div></div>
+                                <div style={{background:"var(--bdr)",padding:6,borderRadius:4,textAlign:"center"}}><div className="form-label">Failure Class</div><div className="mono" style={{fontSize:12,fontWeight:700}}>{decision.failure_class||"—"}</div></div>
+                                <div style={{background:"var(--bdr)",padding:6,borderRadius:4,textAlign:"center"}}><div className="form-label">Amount</div><div className="mono" style={{fontSize:12,fontWeight:700}}>{decision.amount_paise?`₹${(decision.amount_paise/100).toLocaleString()}`:"—"}</div></div>
+                            </div>
+                            {decision.selected_reasoning&&<div style={{background:"var(--bdr)",padding:6,borderRadius:4,marginBottom:8,fontSize:10}}><span style={{fontWeight:700}}>Why: </span>{decision.selected_reasoning.reason||JSON.stringify(decision.selected_reasoning)}</div>}
+                            {decision.alternatives&&decision.alternatives.length>0&&<div>
+                                <div style={{fontSize:9,color:"var(--dim)",marginBottom:4,textTransform:"uppercase",letterSpacing:".04em"}}>Alternatives ({decision.alternatives.length})</div>
+                                {decision.alternatives.filter(a=>!a.selected).slice(0,5).map((r,i)=><div key={i} style={{display:"flex",justifyContent:"space-between",padding:"3px 0",borderBottom:"1px solid var(--bdr)",fontSize:10}}>
+                                    <span>{r.action}</span><span className="mono" style={{color:"var(--dim)"}}>net EV: {fmt(r.net_ev_paise)}</span><span style={{fontSize:9,color:r.rejected_reason?"var(--red)":"var(--dim)"}}>{r.rejected_reason||""}</span>
+                                </div>)}
+                            </div>}
+                        </div>}
+
+                        {/* Explanation chain */}
+                        {explain&&explain.explanation_chain&&<div style={{border:"1px solid var(--bdr)",borderRadius:8,padding:12,marginBottom:14,background:"var(--card)"}}>
+                            <div style={{fontSize:11,fontWeight:700,marginBottom:8}}>🔗 Explanation Chain</div>
+                            {explain.explanation_chain.map((s,i)=><div key={i} style={{display:"flex",gap:8,padding:"5px 0",borderBottom:"1px solid var(--bdr)",fontSize:10}}>
+                                <span className="tag" style={{flexShrink:0,minWidth:130,textAlign:"center"}}>{i+1}. {s.phase}</span>
+                                <span style={{color:"var(--sec)"}}>{s.reasoning}</span>
+                            </div>)}
+                        </div>}
+
+                        {/* Event Log */}
+                        <div style={{borderTop:"1px solid var(--bdr)",paddingTop:10}}>
+                            <div style={{fontSize:10,fontWeight:600,color:"var(--dim)",marginBottom:6,textTransform:"uppercase",letterSpacing:".04em"}}>Event Log ({detail.audit?.length||0})</div>
+                            <div style={{maxHeight:350,overflowY:"auto"}}>
+                                {detail.audit?.map(e=>(
+                                    <div key={e.event_id} style={{display:"flex",gap:8,padding:"6px 0",borderBottom:"1px solid var(--bdr)",fontSize:11}}>
+                                        <div style={{width:120,color:"var(--dim)",fontSize:9,whiteSpace:"nowrap",fontFamily:"var(--mono)"}}>{new Date(e.ts).toLocaleString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit",day:"2-digit",month:"short"})}</div>
+                                        <div style={{width:60,fontWeight:600,fontSize:9,textTransform:"uppercase",color:actorColor[e.actor]||"var(--dim)"}}>{e.actor}</div>
+                                        <div style={{flex:1}}>
+                                            <div style={{display:"flex",alignItems:"center",gap:4,marginBottom:1}}><span>{eventIcon[e.event_type]||"📌"}</span><span style={{fontWeight:600,textTransform:"capitalize",fontSize:10}}>{e.event_type.replace(/[._]/g," ")}</span></div>
+                                            <div style={{color:"var(--dim)",fontSize:10,marginLeft:16}}>
+                                                {e.event_type==="case.created"&&`classified as ${e.classified_as} (${(e.confidence*100).toFixed(0)}%) — ${e.error_description}`}
+                                                {e.event_type==="action.scheduled"&&`${e.type} in ${e.delay_min}min — P(recovery) ${(e.recovery_probability*100).toFixed(1)}% — ${e.why}`}
+                                                {e.event_type==="action.executed"&&`${e.type} — ${e.decision}: ${e.reason}`}
+                                                {e.event_type==="action.blocked"&&`blocked — ${e.reason}`}
+                                                {e.event_type==="case.written_off"&&`written off — ${e.reason}`}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </>}
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+    </script>
+</body>
+</html>

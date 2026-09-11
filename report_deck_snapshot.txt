@@ -1,0 +1,72 @@
+# Text snapshot of the submission deck (Canva design DAHU51D7IGQ, 10 pages).
+# Captured 2026-09-12 via Canva MCP get-design-content (richtexts, all pages).
+#
+# scripts/audit_claims.py audits THIS file against report.json mechanically:
+#   - every derived figure on the deck must equal the fresh seed-42 numbers
+#   - known-stale figures (the pre-regeneration batch) fail the audit loudly
+#
+# To refresh after editing the deck in Canva: re-run get-design-content on the
+# design and replace the text between the DECK markers below, verbatim.
+
+---DECK-START---
+Autonomous AI Teammates Track Revenue Recovery
+An AI Teammate That Recovers Revenue
+Autonomous AI Teammates Track · Paytm Revenue Recovery Agent · Built for India
+Reproducible: seed 42 · zero API keys · 5-minute judge run
+
+2,000 failed-payment cases split 1,400 treatment / 600 control. Treatment recovered 70.6% vs 21.7% control — a +49.0pp incremental lift (95% CI [44.9–52.8pp]), worth ₹66.58 Lakh across 686 net incremental recoveries. Naive contact-all baseline: just 50.0%.
+RECOVERY RATE ANALYSIS
+THE AUTONOMOUS LOOP
+
+UCB1 bandit picks WhatsApp, voice, SMS, or email per customer — measured optimal within ~30 pulls. A policy gate re-checks caps, quiet hours (10pm–8am IST), and opt-outs before every send; failures escalate to humans — zero silent failures.
+DECIDE
+Rules-first classifier (LLM optional polish) maps every event into 23 failure classes — NETWORK_TIMEOUT, MANDATE_ISSUE, INVOICE_OVERDUE and more — 100% accuracy vs ground truth on n=2,000. Every classification is logged for audit.
+UNDERSTAND
+Signed payment-failure webhooks ingested in <12ms via HMAC-verified FastAPI endpoint; every event lands in a SHA-256 hash-chained ledger (SQLite by default, Postgres for scale) before any decision is made.
+INGEST
+
+Full flow: React dashboard (Vercel) → FastAPI (Render) → HMAC webhook ingest → SHA-256 hash-chained ledger (SQLite default, Postgres for scale) → rules-first classifier → UCB1 selector → policy gate → executor fan-out to WhatsApp / voice / SMS / email with UPI payment links. Every step audited; judges replay any case with seed 42 via /docs.
+SYSTEM DESIGN
+TRAI-style quiet hours (10pm–8am IST) and rolling per-customer contact caps blocked 273 sends in the pilot — hard-coded in the policy gate, not suggested in a prompt.
+Policy Controls
+21 customers opted out mid-campaign; every opt-out honored instantly via the registry — plus 19 policy blocks for opt-out violations. Zero exceptions.
+Opt-Out Registry
+SHA-256 hash chain covers 100% of decisions and actions. Zero silent failures — every block, escalation, and recovery is queryable end-to-end.
+Audit Trail
+Quiet hours, caps, opt-outs, tamper-evident audit — enforced in code, not prompts
+Compliance & Trust
+₹66.58 L
+70.6%
+HEADLINE OUTCOMES
++49.0pp lift vs randomized control · 686 net incremental recoveries · ₹0.69 per recovery · 95% CI [44.9–52.8pp]
+Treatment Recovery Rate
+vs 21.7% in a randomized control group (n=600) — measured, not claimed
+Incremental Revenue Generated
+686 net incremental recoveries, every rupee traceable in the audit ledger
+
+All 9 failure classes beat control — biggest lifts: NETWORK_TIMEOUT +60.6pp, INVOICE_OVERDUE +56.5pp, MANDATE_ISSUE +54.9pp. Every class carries a bootstrap 95% CI; no cherry-picking.
+PER-FAILURE-CLASS LIFTS
+
+UNIT ECONOMICS & PROMISE ENGINE
+WhatsApp ₹282 · voice ₹99 · SMS ₹75 · email ₹16 — total ₹472 across 3,000 contacts, landing at ₹0.69 per net incremental recovery.
+Spend by Channel
+279 spoken promises, 164 kept = 58.8% keep rate, driving ₹18.83 L. "Kal pakka" promises schedule a retry at the promised hour — customers self-select deadlines they can hit.
+Promise Engine
+
+BUILT FOR INDIA
+01
+Localized Communication
+Hinglish WhatsApp/SMS/voice copy — "kal pakka" promise language drives a 58.8% keep rate.
+02
+UPI Integration
+UPI-first payment links deep-linked from every WhatsApp/SMS — one tap from message to payment.
+03
+Optimized for Users
+Salary-cycle retry timing (1st/7th) tuned for Tier 2/3 cash-flow rhythms.
+
+Autonomous. Accountable. Auditable.
+Try It Live (Local).venv/bin/uvicorn app.main:app --port 8000 → open localhost:8000/
+API & Judge Docs (Local).venv/bin/uvicorn app.main:app --port 8000/docs — seed-42 replay + audit-ledger queries
+Reproduce Every Number
+.venv/bin/python scripts/run_batch.py --seed 42 → report.json
+---DECK-END---

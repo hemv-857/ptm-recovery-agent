@@ -1,0 +1,111 @@
+channels:
+  email:
+    cost_paise: 2
+    enabled: true
+  payment_link:
+    cost_paise: 0
+  sms:
+    cost_paise: 15
+    enabled: true
+  voice:
+    cost_paise: 300
+    enabled: true
+  whatsapp:
+    cost_paise: 30
+    enabled: true
+policy:
+  attempt_window_hours: 72
+  auto_action_cap_paise: 2500000
+  case_expiry_hours: 336
+  cooldown_minutes: 240
+  final_followup_hours: 168
+  max_attempts_per_case: 3
+  quiet_hours_ist:
+  - 22
+  - 8
+retry:
+  issuer_unavailable_backoff_min: 45
+  network_timeout_backoff_min: 20
+  telecom_backoff_min: 30
+  salary_cycle_days:
+  - 1
+  - 5
+  voice_min_amount_paise: 2500000
+  # Smart Payment Plan Recovery (SPR) — default OFF: canonical seeded batch
+  # numbers are unchanged until a config enables it (swap config, same pipeline)
+  installment_offers: false
+  installment_min_amount_paise: 5000000    # offer plans for receivables >= Rs 50,000
+  installment_splits: [0.30, 0.35, 0.35]   # upfront + cash-cycle-aligned slices
+  installment_gap_days: 15
+simulation:
+  batch_size: 2000
+  horizon_days: 7
+world:
+  base_pay_probability:
+    CUSTOMER_ABANDONMENT: 0.22
+    HARD_DECLINE: 0.06
+    INSUFFICIENT_FUNDS: 0.5
+    INVOICE_OVERDUE: 0.38
+    ISSUER_UNAVAILABLE: 0.6
+    MANDATE_ISSUE: 0.32
+    NETWORK_TIMEOUT: 0.65
+    SOFT_DECLINE_OTHER: 0.4
+    SUBSCRIPTION_FAILED: 0.3
+    UNKNOWN: 0.25
+    WALLET_INSUFFICIENT: 0.55
+    KYC_INCOMPLETE: 0.15
+    UPI_LIMIT_EXCEEDED: 0.60
+    MANDATE_LAPSED: 0.30
+    DUPLICATE_TRANSACTION: 0.80
+    OFFLINE_PAYMENT_PENDING: 0.70
+    TELECOM_NETWORK: 0.65
+    GATEWAY_LATENCY: 0.70
+  channel_effectiveness:
+    email: 0.55
+    payment_link: 0.9
+    sms: 0.85
+    voice: 0.72
+    whatsapp: 1.0
+  control_baseline_scale: 0.55
+  fatigue_decay_per_contact: 0.82
+  opt_out_probability_per_contact: 0.012
+  promise_keep_probability: 0.55
+  promise_reply_probability: 0.18
+  quiet_hour_penalty: 0.6
+  salary_alignment_boost: 1.35
+  installment_acceptance_boost: 1.35   # splitting beats lump-sum for squeezed SMEs
+  installment_keep_probability: 0.80   # accepted plans are honored more often than verbal promises
+  large_amount_threshold_paise: 5000000  # >= Rs 50,000: lump-sum is unrealistic for a 60-90d buyer
+  large_amount_pay_scale: 0.5            # STATED ASSUMPTION: lump-sum base pay halves for large receivables
+  seed: 42
+# Paytm ecosystem integration
+paytm_ecosystem:
+  enable_postpaid: true
+  enable_wallet_link: true
+  enable_business_reconciliation: true
+  enable_pob_qr: true
+# Merchant segments
+merchant_segments:
+  d2c_ecommerce:
+    max_retries: 4
+    channels: [whatsapp, sms]
+    escalation_threshold_paise: 200000
+  qsr_restaurants:
+    max_retries: 3
+    channels: [whatsapp, sms]
+    escalation_threshold_paise: 100000
+    qr_recovery: true
+  saas_subscriptions:
+    max_retries: 5
+    channels: [email, whatsapp]
+    escalation_threshold_paise: 500000
+  insurance_lending:
+    max_retries: 2
+    channels: [sms, voice]
+    escalation_threshold_paise: 500000
+    compliance_first: true
+  travel_flights:
+    max_retries: 3
+    channels: [whatsapp, voice]
+    escalation_threshold_paise: 1000000
+    time_critical: true
