@@ -66,8 +66,7 @@ anchored to the seeded canonical batch (`report.json`, reproducible via
 | **Incident log** | `app/incidents.py` — `INCIDENTS` list, 7 documented failures with root causes and fixes; served via `GET /incidents` |
 | **Adversarial LLM test** | `app/adversarial.py:run_adversarial_test()` — a deliberately malicious strategist cannot violate compliance (gate is structural) |
 | **Combined safety report** | `app/main.py:/security/report` — threat model + adversarial test + audit chain in one endpoint |
-| **Live deployment (Vercel + Render)** | Vercel: `paytm-recovery-agent.vercel.app` (dashboard + API proxy via `vercel.json` rewrites). Render: `paytm-recovery-agent.onrender.com` (FastAPI backend). **Status (Sep 2026): both hostnames currently return 404 — redeploy from the Vercel/Render dashboards (config in `vercel.json` + `Dockerfile`) or run locally per "How to reproduce" below.** |
-| **WebSocket live replay** | `app/main.py:/ws/replay` — streams per-case events as JSON for real-time dashboard updates; Vercel connects via `wss://` |
+| **WebSocket live replay** | `app/main.py:/ws/replay` — streams per-case events as JSON for real-time dashboard updates |
 
 ## How to reproduce
 

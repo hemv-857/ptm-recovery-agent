@@ -262,17 +262,6 @@ Judges run full pipeline in 30 seconds with zero API keys. Seed parameter makes 
 | MANDATE_ISSUE | 68.4% | 22.1% | +46.3 | 110 |
 | SUBSCRIPTION_FAILED | 65.3% | 18.9% | +46.4 | 150 |
 
----
-
-## Live Deployments
-
-| URL | Purpose |
-|-----|---------|
-| `paytm-recovery-agent.vercel.app` | React dashboard (API proxied via Vercel rewrites) |
-| `paytm-recovery-agent.onrender.com` | FastAPI backend + API docs at `/docs` |
-
----
-
 ## Deployment
 
 ### Docker (All-in-One)

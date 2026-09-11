@@ -162,13 +162,3 @@ simulation and in the live FastAPI path — the simulator tests the real system.
   auto-collect modelled as RETRY_CHARGE (world decides success).
 - No retries-on-retry (webhook delivery is assumed reliable); idempotency keys
   would come from paytm's API in production.
-
-## Live deployment
-
-- **Vercel** (`paytm-recovery-agent.vercel.app`): serves `index.html` (React dashboard)
-  with Vercel rewrites proxying all `/report`, `/cases`, `/analytics`, `/security`,
-  `/budget`, `/incidents`, `/approval`, `/batch`, `/inbound`, `/ws`, `/audit` paths to
-  the Render backend. Vendored React 18 + Babel + Chart.js in `/static/vendor/`.
-- **Render** (`paytm-recovery-agent.onrender.com`): FastAPI backend with SQLite.
-  WebSocket live replay via `wss://`. Data must be re-seeded after restart via
-  "Run Batch" button or `/batch/run/stream?seed=42&cases=500`.
