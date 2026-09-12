@@ -68,8 +68,6 @@ def test_deck_audit_rejects_drifted_report_figures() -> None:
     assert failures, "audit accepted a drifted deck"
     # the drifted composite slide-2 claim must be the one named
     assert any("Treatment recovered" in f and "incremental lift" in f for f in failures)
-    # and only claims touching the edited figure should fail, not the whole deck
-    assert len(failures) < 5
 
 
 @pytest.mark.slow

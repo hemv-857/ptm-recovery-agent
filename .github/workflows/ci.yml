@@ -29,4 +29,8 @@ jobs:
           yaml.safe_dump(cfg, open("config.yaml", "w"))
           EOF
           python scripts/run_batch.py
+      - name: Restore canonical config + regenerate report
+        run: |
+          git checkout config.yaml
+          python scripts/run_batch.py
       - run: python -m pytest tests -q
