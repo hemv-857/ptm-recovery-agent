@@ -426,13 +426,13 @@ class WorkflowEngine:
 
         # Handle both WorkflowStep and ToolCall objects (for backward compatibility)
         step_reasoning = getattr(step, 'reasoning', getattr(step, 'context', {}))
-        step_id = getattr(step, 'step_id', getattr(step, 'call_id', None))
+        getattr(step, 'step_id', getattr(step, 'call_id', None))
 
         try:
             # If step has tool_call_id, execute via tool protocol
             tool_call_id = step_reasoning.get("tool_call_id")
             if tool_call_id:
-                return self._execute_tool_call(step, case, now)
+                return self._execute_tool_call(step, case, now, plan)
 
             # Otherwise use legacy executor
             action = type('Action', (), {
@@ -483,7 +483,7 @@ class WorkflowEngine:
         self.store.save_workflow_plan(plan)
         return True
 
-    def _execute_tool_call(self, step: WorkflowStep, case: RecoveryCase, now: datetime) -> bool:
+    def _execute_tool_call(self, step: WorkflowStep, case: RecoveryCase, now: datetime, plan: WorkflowPlan) -> bool:
         """Execute a single tool call from the LLM-generated plan."""
         from .executor import execute_action
 
@@ -499,10 +499,9 @@ class WorkflowEngine:
 
         # Find the tool call in the plan (stored in metadata)
         tool_name = step_reasoning.get("tool")
-        if not tool_name:
+        if not tool_name and step_action_type:
             # Try to infer from action_type
-            if step_action_type:
-                tool_name = self._action_to_tool(step_action_type)
+            tool_name = self._action_to_tool(step_action_type)
 
         if not tool_name:
             step_reasoning["error"] = "unknown tool"

@@ -272,7 +272,7 @@ class WebhookManager:
                 continue
 
             # Attempt delivery
-            success = self._attempt_delivery(delivery, endpoint)
+            self._attempt_delivery(delivery, endpoint)
             processed += 1
 
         return processed
@@ -358,11 +358,10 @@ class WebhookManager:
 
         # Check idempotency
         idempotency_key = payload.get("idempotency_key", "")
-        if idempotency_key:
-            if self.store.conn.execute(
-                "SELECT 1 FROM webhook_idempotency WHERE key=?", (idempotency_key,)
-            ).fetchone():
-                return {"status": "duplicate"}
+        if idempotency_key and self.store.conn.execute(
+            "SELECT 1 FROM webhook_idempotency WHERE key=?", (idempotency_key,)
+        ).fetchone():
+            return {"status": "duplicate"}
 
         # Store idempotency key
         if idempotency_key:
@@ -398,7 +397,7 @@ class WebhookManager:
         """Handle payment received from external system."""
         case_id = payload.get("case_id")
         amount = payload.get("amount_paise")
-        payment_id = payload.get("payment_id", f"ext_{uuid.uuid4().hex[:8]}")
+        payload.get("payment_id", f"ext_{uuid.uuid4().hex[:8]}")
 
         if not case_id or not amount:
             return {"status": "error", "message": "Missing case_id or amount"}

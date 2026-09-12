@@ -111,7 +111,7 @@ class MetricsCollector:
         self._max_history = 10000  # Per metric
         self._lock = threading.Lock()
 
-    def record(self, metric_name: str, value: float, labels: dict[str, str] = None) -> None:
+    def record(self, metric_name: str, value: float, labels: dict[str, str] | None = None) -> None:
         with self._lock:
             snapshot = MetricSnapshot(
                 metric_name=metric_name,
@@ -122,17 +122,17 @@ class MetricsCollector:
             if len(self._metrics[metric_name]) > self._max_history:
                 self._metrics[metric_name] = self._metrics[metric_name][-self._max_history:]
 
-    def increment(self, metric_name: str, value: float = 1.0, labels: dict[str, str] = None) -> None:
+    def increment(self, metric_name: str, value: float = 1.0, labels: dict[str, str] | None = None) -> None:
         # For counters, we store the increment; aggregation happens at query time
         self.record(f"{metric_name}_inc", value, labels)
 
-    def gauge(self, metric_name: str, value: float, labels: dict[str, str] = None) -> None:
+    def gauge(self, metric_name: str, value: float, labels: dict[str, str] | None = None) -> None:
         self.record(metric_name, value, labels)
 
-    def histogram(self, metric_name: str, value: float, labels: dict[str, str] = None) -> None:
+    def histogram(self, metric_name: str, value: float, labels: dict[str, str] | None = None) -> None:
         self.record(f"{metric_name}_hist", value, labels)
 
-    def get_latest(self, metric_name: str, labels: dict[str, str] = None) -> float | None:
+    def get_latest(self, metric_name: str, labels: dict[str, str] | None = None) -> float | None:
         with self._lock:
             snapshots = self._metrics.get(metric_name, [])
             if not snapshots:
@@ -144,29 +144,27 @@ class MetricsCollector:
             return snapshots[-1].value
 
     def get_rate(self, metric_name: str, window_minutes: int = 5,
-                 labels: dict[str, str] = None) -> float:
+                 labels: dict[str, str] | None = None) -> float:
         """Calculate rate per minute over window."""
         with self._lock:
             cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
             cutoff_str = cutoff.isoformat()
             total = 0.0
             for snap in self._metrics.get(f"{metric_name}_inc", []):
-                if snap.timestamp >= cutoff_str:
-                    if not labels or all(snap.labels.get(k) == v for k, v in labels.items()):
-                        total += snap.value
+                if snap.timestamp >= cutoff_str and (not labels or all(snap.labels.get(k) == v for k, v in labels.items())):
+                    total += snap.value
             return total / max(window_minutes, 1)
 
     def get_percentile(self, metric_name: str, percentile: float,
-                       window_minutes: int = 60, labels: dict[str, str] = None) -> float | None:
+                       window_minutes: int = 60, labels: dict[str, str] | None = None) -> float | None:
         """Get percentile of histogram values."""
         with self._lock:
             cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
             cutoff_str = cutoff.isoformat()
             values = []
             for snap in self._metrics.get(f"{metric_name}_hist", []):
-                if snap.timestamp >= cutoff_str:
-                    if not labels or all(snap.labels.get(k) == v for k, v in labels.items()):
-                        values.append(snap.value)
+                if snap.timestamp >= cutoff_str and (not labels or all(snap.labels.get(k) == v for k, v in labels.items())):
+                    values.append(snap.value)
             if not values:
                 return None
             values.sort()
@@ -394,12 +392,10 @@ class AlertManager:
 
     def _send_notifications(self, alert: Alert, is_resolution: bool = False) -> None:
         """Send alert notifications via registered handlers."""
-        for channel, handler in self._notification_handlers.items():
-            try:
+        import contextlib
+        for _channel, handler in self._notification_handlers.items():
+            with contextlib.suppress(Exception):
                 handler(alert, is_resolution)
-            except Exception:
-                # Log error but don't fail other channels
-                pass
 
     def get_active_alerts(self, severity: AlertSeverity | None = None) -> list[Alert]:
         alerts = [a for a in self._alerts.values() if a.status == AlertStatus.ACTIVE]
@@ -556,7 +552,7 @@ class NotificationChannels:
     def slack_webhook(webhook_url: str) -> Callable:
         def handler(alert: Alert, is_resolution: bool = False):
             color = {"info": "#36a64f", "warning": "#ff9900", "critical": "#ff0000", "emergency": "#8b0000"}.get(alert.severity.value, "#808080")
-            emoji = "✅" if is_resolution else {"info": "ℹ️", "warning": "⚠️", "critical": "🚨", "emergency": "🔥"}.get(alert.severity.value, "📢")
+            emoji = "✅" if is_resolution else {"info": "i", "warning": "⚠️", "critical": "🚨", "emergency": "🔥"}.get(alert.severity.value, "📢")
 
             payload = {
                 "attachments": [{

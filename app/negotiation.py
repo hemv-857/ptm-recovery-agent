@@ -143,7 +143,6 @@ class NegotiationEngine:
 
     def create_initial_offer(self, case: RecoveryCase, strategy: str = "standard") -> Offer:
         """Create the initial offer based on case and strategy."""
-        cfg = self.cfg
         base_amount = case.amount
 
         # Determine offer based on failure class and strategy
@@ -295,7 +294,6 @@ class NegotiationEngine:
             return {"acceptable": False, "reason": "no_current_offer"}
 
         original = state.current_offer.original_amount_paise
-        current = state.current_offer.amount_paise
         min_acceptable = int(original * 0.85)  # Floor at 85% of original
 
         if counter_amount >= min_acceptable:
@@ -305,10 +303,9 @@ class NegotiationEngine:
         case = self.store.get_case(state.case_id)
         if case:
             reliability = self.store.promise_reliability(case.customer.customer_id)
-            if reliability and reliability > 0.7:
+            if reliability and reliability > 0.7 and counter_amount >= int(original * 0.80):
                 # Good customer, be more flexible
-                if counter_amount >= int(original * 0.80):
-                    return {"acceptable": True, "reason": "good_customer_history"}
+                return {"acceptable": True, "reason": "good_customer_history"}
 
         return {"acceptable": False, "reason": "below_floor", "min_acceptable": min_acceptable}
 

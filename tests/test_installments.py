@@ -209,7 +209,7 @@ def test_engine_runs_spr_end_to_end(tmp_path):
     cfg = _spr_cfg()
     start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
     payments = generate_batch(150, start, seed=42)
-    groups = assign_groups(payments)
+    assign_groups(payments)
     store = Store(tmp_path / "e.db")
     run(payments, cfg, store)
 

@@ -260,14 +260,13 @@ def get_available_tools_for_failure(failure_class: str) -> list[ToolName]:
             ToolName.CREATE_PAYMENT_LINK, ToolName.RETRY_CHARGE]
 
     if failure_class in ("INVOICE_OVERDUE", "OVERDUE_GENUINE"):
-        return base + [ToolName.MAKE_VOICE_CALL, ToolName.ESCALATE_TO_HUMAN,
-                       ToolName.OFFER_INSTALLMENT_PLAN]
+        return [*base, ToolName.MAKE_VOICE_CALL, ToolName.ESCALATE_TO_HUMAN, ToolName.OFFER_INSTALLMENT_PLAN]
     if failure_class in ("KYC_INCOMPLETE",):
-        return base + [ToolName.ESCALATE_TO_HUMAN]
+        return [*base, ToolName.ESCALATE_TO_HUMAN]
     if failure_class in ("WALLET_INSUFFICIENT",):
         return base
     if failure_class in ("MANDATE_ISSUE", "MANDATE_LAPSED"):
-        return base + [ToolName.ESCALATE_TO_HUMAN]
+        return [*base, ToolName.ESCALATE_TO_HUMAN]
     if failure_class in ("DUPLICATE_TRANSACTION",):
         return [ToolName.ESCALATE_TO_HUMAN]
 

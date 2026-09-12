@@ -33,7 +33,7 @@ class ContextualBanditState:
 
 class MerchantBandit:
     """Contextual bandit: merchant_id x failure_class -> channel rewards.
-    
+
     Uses UCB1 with context partitioning. Each (merchant, failure_class) pair
     has its own bandit state, enabling personalized channel selection.
     """
@@ -172,7 +172,7 @@ class MerchantBandit:
     def get_all_stats(self) -> dict[str, dict]:
         """Get all bandit states for dashboard."""
         return {k: self.get_stats(k.split(":")[0], FailureClass(k.split(":")[1]))
-                for k in self._states.keys()}
+                for k in self._states}
 
 
 # Global instance (initialized from main.py)

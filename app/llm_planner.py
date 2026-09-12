@@ -91,7 +91,7 @@ class LLMPlanner:
         enabled_tools = [t for t in available_tools if ctx.channels_enabled.get(t.value.replace("send_", "").replace("make_", "").replace("create_", "").replace("retry_", "").replace("escalate_", "").replace("check_", "").replace("offer_", "").replace("collect_", "").replace("get_", "").replace("update_", ""), True)]
 
         # Build tool schemas for function calling
-        tool_schemas = {t.value: TOOL_SCHEMAS[t] for t in enabled_tools if t in TOOL_SCHEMAS}
+        {t.value: TOOL_SCHEMAS[t] for t in enabled_tools if t in TOOL_SCHEMAS}
 
         prompt = self._build_prompt(ctx, enabled_tools)
 

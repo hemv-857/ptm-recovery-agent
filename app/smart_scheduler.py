@@ -321,10 +321,8 @@ class SmartScheduler:
         # Find next best hour
         for hour in sorted(profile.best_hours):
             t = now.replace(hour=hour, minute=0, second=0, microsecond=0)
-            if t > now:
-                # Check if it's a business day
-                if t.weekday() < 5:
-                    return t
+            if t > now and t.weekday() < 5:
+                return t
 
         # If no good time today, use first best hour next business day
         t = now.replace(hour=profile.best_hours[0], minute=0, second=0, microsecond=0)

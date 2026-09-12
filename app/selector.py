@@ -39,7 +39,7 @@ def _get_llm_client():
 def _llm_select_action(case: RecoveryCase, cfg: dict, now: datetime,
                         promise_reliability: float | None) -> Intervention | None:
     """Use LLM to select action for edge cases where rules have low confidence.
-    
+
     Called when:
     - Multiple failure classes could apply (confidence < 0.6)
     - Novel combination not covered by rules
@@ -151,7 +151,7 @@ def _salary_aligned_slot(cfg: dict, now: datetime) -> datetime:
 
 def _contact_ladder(case: RecoveryCase, cfg: dict, store=None) -> ActionType:
     """Channel escalation by contact index: WhatsApp -> SMS -> email.
-    
+
     Uses merchant-level contextual bandit when store is available,
     falls back to simple escalation ladder."""
     order = [

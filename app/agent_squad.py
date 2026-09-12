@@ -99,7 +99,7 @@ class BaseAgent:
             requires_response=requires_response,
         )
 
-    def log_activity(self, case_id: str, activity: str, details: dict = None) -> None:
+    def log_activity(self, case_id: str, activity: str, details: dict | None = None) -> None:
         """Log agent activity to audit trail."""
         self.store.append_audit(type("AuditEvent", (), {
             "event_id": f"{self.role.value}_{uuid.uuid4().hex[:8]}",
@@ -669,7 +669,7 @@ class AgentSquad:
         return response
 
     def delegate_task(self, from_agent: AgentRole, to_agent: AgentRole,
-                      task: str, case_id: str, payload: dict = None,
+                      task: str, case_id: str, payload: dict | None = None,
                       requires_response: bool = True) -> AgentMessage | None:
         """Delegate a task from one agent to another."""
         message = self.agents[from_agent].send_message(

@@ -7,6 +7,7 @@ stays linear across concurrent writers — see docs/adr/006-postgres-advisory-lo
 """
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import re
@@ -179,10 +180,8 @@ class PgStore:
 
     def close(self) -> None:
         with self._write_lock:
-            try:
+            with contextlib.suppress(Exception):
                 self.conn.commit()
-            except Exception:
-                pass
             self.conn.close()
 
     # ---- cases ---------------------------------------------------------

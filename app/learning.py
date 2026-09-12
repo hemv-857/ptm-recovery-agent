@@ -247,10 +247,14 @@ class LearningEngine:
 
         # Amount tiers
         def amount_tier(amount: int) -> str:
-            if amount < 10000: return "micro"
-            elif amount < 100000: return "small"
-            elif amount < 1000000: return "medium"
-            elif amount < 5000000: return "large"
+            if amount < 10000:
+                return "micro"
+            elif amount < 100000:
+                return "small"
+            elif amount < 1000000:
+                return "medium"
+            elif amount < 5000000:
+                return "large"
             return "xlarge"
 
         tier_stats = {}

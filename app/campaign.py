@@ -2,6 +2,7 @@
 scheduling, A/B testing, and performance optimization."""
 from __future__ import annotations
 
+import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -313,17 +314,21 @@ class CampaignOrchestrator:
             return case.failure_class.value
         elif rule == TargetingRule.AMOUNT_TIER:
             amt = case.amount
-            if amt < 10000: return "micro"
-            elif amt < 100000: return "small"
-            elif amt < 1000000: return "medium"
-            elif amt < 5000000: return "large"
+            if amt < 10000:
+                return "micro"
+            elif amt < 100000:
+                return "small"
+            elif amt < 1000000:
+                return "medium"
+            elif amt < 5000000:
+                return "large"
             return "xlarge"
         elif rule == TargetingRule.MERCHANT_SEGMENT:
             return getattr(case, 'merchant_segment', 'unknown')
         elif rule == TargetingRule.DAYS_OVERDUE:
             return case.loss_age_days
         elif rule == TargetingRule.PROMISE_HISTORY:
-            rel = self.store.promise_reliability(case.customer.customer_id)
+            reliability = self.store.promise_reliability(case.customer.customer_id)
             return reliability if reliability is not None else -1
         elif rule == TargetingRule.CHANNEL_PREFERENCE:
             # Infer from history
@@ -342,15 +347,15 @@ class CampaignOrchestrator:
             return value != target
         elif operator == "gt":
             return value > target
-        elif rule == "lt":
+        elif operator == "lt":
             return value < target
-        elif rule == "gte":
+        elif operator == "gte":
             return value >= target
-        elif rule == "lte":
+        elif operator == "lte":
             return value <= target
-        elif rule == "in":
+        elif operator == "in":
             return value in target if isinstance(target, list) else value == target
-        elif rule == "not_in":
+        elif operator == "not_in":
             return value not in target if isinstance(target, list) else value != target
         return False
 
@@ -385,8 +390,8 @@ class CampaignOrchestrator:
         candidates = self.find_matching_cases(campaign, limit=max_cases * 2)
 
         # Filter out already executed today
-        executed_today = set(e.case_id for e in self._executions.get(campaign_id, [])
-                            if e.assigned_at.startswith(datetime.now(timezone.utc).date().isoformat()))
+        executed_today = {e.case_id for e in self._executions.get(campaign_id, [])
+                            if e.assigned_at.startswith(datetime.now(timezone.utc).date().isoformat())}
         candidates = [c for c in candidates if c.case_id not in executed_today]
 
         processed = 0
@@ -408,7 +413,7 @@ class CampaignOrchestrator:
 
             # Apply variant config and trigger workflow
             variant_config = {**campaign.default_config, **variant.config_overrides}
-            self._execute_case_with_variant(case, variant, variant_config)
+            self._execute_case_with_variant(case, variant, variant_config, campaign)
 
             processed += 1
 
@@ -419,13 +424,13 @@ class CampaignOrchestrator:
         executions = self._executions.get(campaign_id, [])
         return sum(1 for e in executions if e.assigned_at.startswith(today))
 
-    def _execute_case_with_variant(self, case: RecoveryCase, variant: CampaignVariant, config: dict) -> None:
+    def _execute_case_with_variant(self, case: RecoveryCase, variant: CampaignVariant, config: dict, campaign: Campaign) -> None:
         """Execute recovery for a case using campaign variant config."""
         # Use agent squad to process
         squad = self.agent_squad
 
         # Start with classification
-        classifier = squad.get_agent(squad.agents.keys().__iter__().__next__())  # Would use proper role
+        squad.get_agent(squad.agents.keys().__iter__().__next__())  # Would use proper role
         # In real implementation, this would trigger the workflow engine with variant config
 
         # For now, just log the assignment
@@ -471,7 +476,7 @@ class CampaignOrchestrator:
             by_variant[exec.variant_id]["cost"] += exec.cost_paise
 
         # Calculate rates
-        for variant_id, stats in by_variant.items():
+        for _variant_id, stats in by_variant.items():
             stats["recovery_rate"] = stats["recovered"] / max(stats["assigned"], 1)
             stats["roi"] = (stats["revenue"] - stats["cost"]) / max(stats["cost"], 1)
 
@@ -512,7 +517,7 @@ class CampaignOrchestrator:
 
             # Contingency table
             table = [[a_recovered, a_total - a_recovered], [b_recovered, b_total - b_recovered]]
-            chi2, p_value, dof, expected = scipy_stats.chi2_contingency(table)
+            _chi2, p_value, _dof, _expected = scipy_stats.chi2_contingency(table)
 
             significance = "significant" if p_value < 0.05 else "not_significant"
         except Exception:

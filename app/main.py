@@ -19,19 +19,6 @@ from fastapi import FastAPI, Header, HTTPException, Request, WebSocket, WebSocke
 from fastapi.responses import HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-
-class _NoCacheStaticFiles(StaticFiles):
-    """StaticFiles subclass that sends Cache-Control: no-cache so the browser
-    never holds a stale copy of dashboard.jsx / dashboard.css (Babel compiles
-    dashboard.jsx in-browser; a cached stale copy breaks the React render).
-    The no-store header avoids the browser cache entirely."""
-    async def get_response(self, path: str, status_code: int) -> Response:
-        resp = await super().get_response(path, status_code)
-        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        resp.headers["Pragma"] = "no-cache"
-        resp.headers["Expires"] = "0"
-        return resp
-
 from .adversarial import run_adversarial_test
 from .agent import ingest_failure, mark_recovered, plan_and_schedule, write_off
 from .audit_chain import get_audit_chain
@@ -59,6 +46,19 @@ from .recovery_model import get_model
 from .report_print import render_print_report
 from .selector import _contact_ladder
 from .uplift import uplift
+
+
+class _NoCacheStaticFiles(StaticFiles):
+    """StaticFiles subclass that sends Cache-Control: no-cache so the browser
+    never holds a stale copy of dashboard.jsx / dashboard.css (Babel compiles
+    dashboard.jsx in-browser; a cached stale copy breaks the React render).
+    The no-store header avoids the browser cache entirely."""
+    async def get_response(self, path: str, status_code: int) -> Response:
+        resp = await super().get_response(path, status_code)
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
 
 app = FastAPI(
     title="Paytm Revenue Recovery Agent",
@@ -442,7 +442,7 @@ def approve_case(case_id: str, x_agent_token: str = Header("")) -> dict:
 @app.post("/cases/{case_id}/human-action/request", tags=["cases"])
 def request_human_action(case_id: str, payload: dict, x_agent_token: str = Header("")) -> dict:
     """Request structured human action for a case.
-    
+
     Agent pauses workflow and waits for human to complete action.
     Returns a request_id for tracking.
     """
@@ -493,7 +493,7 @@ def request_human_action(case_id: str, payload: dict, x_agent_token: str = Heade
 @app.post("/human-action/{request_id}/complete", tags=["cases"])
 def complete_human_action(request_id: str, payload: dict, x_agent_token: str = Header("")) -> dict:
     """Complete a human action request with structured result.
-    
+
     Agent resumes workflow based on human action outcome.
     """
     _require_agent_token(x_agent_token)
@@ -920,7 +920,7 @@ def set_settings(payload: dict[str, Any]) -> dict[str, Any]:
 @app.post("/agent/tick", tags=["agent"])
 def agent_tick(x_agent_token: str = Header("")) -> dict:
     """Run one autonomous tick of the workflow engine.
-    
+
     Operator-facing: manually trigger the agent to process next steps.
     """
     _require_agent_token(x_agent_token)
@@ -938,7 +938,7 @@ def agent_tick(x_agent_token: str = Header("")) -> dict:
 @app.post("/agent/run-case/{case_id}", tags=["agent"])
 def agent_run_case(case_id: str, x_agent_token: str = Header("")) -> dict:
     """Run the next step for a specific case.
-    
+
     Operator can trigger agent on a single case.
     """
     _require_agent_token(x_agent_token)
@@ -1024,7 +1024,7 @@ def agent_resume_case(case_id: str, x_agent_token: str = Header("")) -> dict:
 @app.post("/agent/inject-instruction/{case_id}", tags=["agent"])
 def agent_inject_instruction(case_id: str, payload: dict, x_agent_token: str = Header("")) -> dict:
     """Inject a natural language instruction for the agent to consider.
-    
+
     Examples: "Call customer before next retry", "Skip voice, use WhatsApp only"
     """
     _require_agent_token(x_agent_token)
@@ -2884,7 +2884,7 @@ def _failure_breakdown(cases) -> dict[str, Any]:
         if c.status == CaseStatus.RECOVERED:
             breakdown[fc]["recovered"] += 1
             breakdown[fc]["recovered_amount"] += c.recovered_amount
-    for fc, d in breakdown.items():
+    for _fc, d in breakdown.items():
         d["rate"] = round(d["recovered"] / d["total"] * 100, 1) if d["total"] else 0
         d["amount_display"] = fmt_rupees(d["amount"])
         d["recovered_display"] = fmt_rupees(d["recovered_amount"])
@@ -3166,11 +3166,11 @@ def portfolio_recommendation(capacity_hours: float = 4.0) -> dict[str, Any]:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  Channel × failure-class heatmap
+#  Channel x failure-class heatmap
 # ═══════════════════════════════════════════════════════════════════════════
 @app.get("/analytics/heatmap", tags=["reporting"])
 def channel_class_heatmap() -> dict[str, Any]:
-    """Recovery-rate heatmap: channel (row) × failure class (column).
+    """Recovery-rate heatmap: channel (row) x failure class (column).
 
     Built from the audit trail's actions — the channel is derived from the
     action type; the cell rate is the share of those cases that recovered.
@@ -3626,50 +3626,50 @@ MERCHANT_WIZARD_PROFILES = [
         "label": "D2C / E-commerce",
         "icon": "🛒",
         "desc": "High AOV, single purchases, card + UPI failures",
-        "typical_amount_range": "₹500–₹5,000",
+        "typical_amount_range": "₹500-₹5,000",
         "recommended_channels": ["whatsapp", "sms", "email"],
         "recovery_focus": "cart abandonment, hard decline, network timeout",
-        "estimated_lift_pp": "40–55pp",
+        "estimated_lift_pp": "40-55pp",
     },
     {
         "id": "subscription",
         "label": "SaaS / Subscriptions",
         "icon": "💻",
         "desc": "Recurring billing, card-on-file failures",
-        "typical_amount_range": "₹500–₹5,000/month",
+        "typical_amount_range": "₹500-₹5,000/month",
         "recommended_channels": ["email", "whatsapp", "sms"],
         "recovery_focus": "card expiry, insufficient funds, mandate failures",
-        "estimated_lift_pp": "50–70pp",
+        "estimated_lift_pp": "50-70pp",
     },
     {
         "id": "qsr",
         "label": "QSR / Restaurants",
         "icon": "🍔",
         "desc": "Low AOV, high frequency, UPI dominant",
-        "typical_amount_range": "₹100–₹500",
+        "typical_amount_range": "₹100-₹500",
         "recommended_channels": ["whatsapp", "sms"],
         "recovery_focus": "customer abandonment, UPI timeout, insufficient funds",
-        "estimated_lift_pp": "35–50pp",
+        "estimated_lift_pp": "35-50pp",
     },
     {
         "id": "edtech",
         "label": "EdTech / EMI",
         "icon": "📚",
         "desc": "Course fees, installment plans, high amounts",
-        "typical_amount_range": "₹5,000–₹1,00,000",
+        "typical_amount_range": "₹5,000-₹1,00,000",
         "recommended_channels": ["sms", "voice", "whatsapp"],
         "recovery_focus": "EMI default, hard decline, mandate issue",
-        "estimated_lift_pp": "45–60pp",
+        "estimated_lift_pp": "45-60pp",
     },
     {
         "id": "lending",
         "label": "Fintech / Lending",
         "icon": "🏦",
         "desc": "Loan repayments, high amounts, compliance-heavy",
-        "typical_amount_range": "₹5,000–₹5,00,000",
+        "typical_amount_range": "₹5,000-₹5,00,000",
         "recommended_channels": ["sms", "voice"],
         "recovery_focus": "repayment default, mandate failure, customer refusal",
-        "estimated_lift_pp": "30–45pp",
+        "estimated_lift_pp": "30-45pp",
     },
 ]
 
@@ -3714,7 +3714,7 @@ def onboarding_setup(payload: dict[str, Any]) -> dict[str, Any]:
             "Review the Compliance Gate settings in the Security tab.",
         ],
         "estimated_recovery": {
-            "baseline_rate": "18–22%",
+            "baseline_rate": "18-22%",
             "projected_rate": profile["estimated_lift_pp"],
             "sample_size": len(cases),
         },
