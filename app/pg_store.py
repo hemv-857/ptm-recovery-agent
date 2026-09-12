@@ -166,7 +166,7 @@ class PgStore:
             if cur.description is None:
                 return []
             cols = [d[0] for d in cur.description]
-            return [dict(zip(cols, row)) for row in cur.fetchall()]
+            return [dict(zip(cols, row, strict=False)) for row in cur.fetchall()]
 
     def begin_batch(self) -> None:
         with self._write_lock:

@@ -8,6 +8,7 @@ the default SQLite path is covered by the rest of the suite.
 """
 from __future__ import annotations
 
+import itertools
 import os
 import uuid
 from datetime import datetime, timezone
@@ -105,7 +106,7 @@ def test_chain_append_and_verify(store):
     )
     indexes = [r["chain_index"] for r in rows]
     assert indexes == list(range(len(indexes))), "chain_index must be contiguous"
-    for prev_row, row in zip(rows, rows[1:]):
+    for prev_row, row in itertools.pairwise(rows):
         assert row["prev_hash"] == prev_row["chain_hash"], "prev_hash must link to previous"
 
 
@@ -156,7 +157,7 @@ def test_concurrent_appends_no_fork():
         assert indexes == list(range(indexes[0], indexes[0] + 40)), (
             "concurrent writers must produce contiguous, non-forked indexes"
         )
-        for prev_row, row in zip(rows, rows[1:]):
+        for prev_row, row in itertools.pairwise(rows):
             assert row["prev_hash"] == prev_row["chain_hash"]
     finally:
         for s in stores:
