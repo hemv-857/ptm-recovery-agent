@@ -69,8 +69,6 @@ trail. Details: [`scripts/demo.py`](scripts/demo.py).
 > you configure — swap the response curves and the same pipeline produces honest
 > numbers for them.
 
-![Dashboard: incremental lift, honest costs, per-class breakdown, spend pie, and per-case audit drill-down](docs/dashboard.png)
-
 ## What makes it different from a demo
 
 **1. Incremental, not gross.** A stratified randomized control group absorbs
