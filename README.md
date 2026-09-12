@@ -31,13 +31,6 @@ entire product suite (Wallet, PostPaid, QR, Business, Money).
 **Core claim:** Rs 66.58 Lakh incremental recovery, +49.0pp lift over control,
 95% CI [+44.9, +52.8]. Every number is reproducible with `--seed 42`.
 
-## Live Deployments
-
-| URL | Purpose |
-|---|---|
-| **[paytm-recovery-agent.vercel.app](https://paytm-recovery-agent.vercel.app)** | React dashboard (API proxied via Vercel rewrites) |
-| **[paytm-recovery-agent.onrender.com](https://paytm-recovery-agent.onrender.com)** | FastAPI backend + API docs at `/docs` |
-
 ## Judge Run — 5 minutes, no keys
 
 ```bash
@@ -272,25 +265,6 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
   costs. The full UI is a single static HTML file + vendored Chart.js — no
   CDN, no build step, works air-gapped; the zero-dependency server-rendered
   report remains as automatic fallback.
-
-## Kubernetes
-
-```bash
-helm install paytm charts/paytm-recovery-agent \
-  --set image.repository=ghcr.io/OWNER/paytm-recovery-agent \
-  --set agentToken=$(openssl rand -hex 16)
-```
-
-Deploys the API + a single-replica ticker Deployment (never scale it — two
-tickers would double-contact customers), backed by a PVC for SQLite state.
-Lint/render verified with Helm v3; set `DATABASE_URL` to move to Postgres before scaling replicas (ADR-006).
-
-Or run it all in Docker — API plus a built-in per-minute `/tick` scheduler,
-state persisted in a named volume:
-
-```bash
-docker compose up --build          # dashboard on http://localhost:8000/
-```
 
 ## 5-minute demo (no keys, fully live)
 

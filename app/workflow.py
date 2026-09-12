@@ -5,15 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any
 from zoneinfo import ZoneInfo
 
-from .models import ActionType, CaseStatus, FailureClass, RecoveryCase
-from .policy import evaluate, Decision
-from .selector import select_next_action, _select_by_failure_class
-from .tool_protocol import ToolPlan, ToolCall, ToolCallStatus, ToolName
+from .learning import get_learning_engine
 from .llm_planner import LLMPlanner, create_fallback_plan
-from .learning import LearningEngine, get_learning_engine
+from .models import ActionType, CaseStatus, RecoveryCase
+from .selector import select_next_action
+from .tool_protocol import ToolName
 
 IST = ZoneInfo("Asia/Kolkata")
 
@@ -424,7 +423,6 @@ class WorkflowEngine:
         plan.updated_at = now.isoformat()
 
         from .executor import execute_action
-        from .tool_protocol import ToolCall, ToolCallStatus
 
         # Handle both WorkflowStep and ToolCall objects (for backward compatibility)
         step_reasoning = getattr(step, 'reasoning', getattr(step, 'context', {}))
@@ -487,9 +485,7 @@ class WorkflowEngine:
 
     def _execute_tool_call(self, step: WorkflowStep, case: RecoveryCase, now: datetime) -> bool:
         """Execute a single tool call from the LLM-generated plan."""
-        from .tool_protocol import ToolCall, ToolCallStatus, ToolName
-        from .executor import ChannelAdapter, VoiceProvider, execute_action
-        from .models import Intervention, ActionType
+        from .executor import execute_action
 
         # Handle both WorkflowStep and ToolCall objects (for backward compatibility)
         step_id = getattr(step, 'step_id', getattr(step, 'call_id', None))
@@ -595,7 +591,6 @@ class WorkflowEngine:
         if executed > 0 and hasattr(self.store, 'conn'):
             try:
                 from .config_optimizer import get_config_optimizer
-                from .measure import build_report
                 optimizer = get_config_optimizer(self.store)
                 cases = self.store.all_cases()
                 treatment = [c for c in cases if c.group.value == "treatment"]

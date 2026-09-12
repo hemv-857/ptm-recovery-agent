@@ -7,9 +7,9 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from fastapi.testclient import TestClient
 
+from app.agent import ingest_failure, plan_and_schedule
 from app.main import app
 from app.models import Customer, FailedPayment, FailureClass
-from app.agent import ingest_failure, plan_and_schedule
 
 
 @pytest.fixture()

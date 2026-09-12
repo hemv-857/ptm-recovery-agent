@@ -5,13 +5,16 @@ from __future__ import annotations
 
 import calendar
 import json
-import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from .installments import (
     due_now_or_scheduled,
+)
+from .installments import (
     is_eligible as installment_eligible,
+)
+from .installments import (
     make_schedule as make_installment_schedule,
 )
 from .models import ActionType, FailureClass, Intervention, RecoveryCase
@@ -157,7 +160,7 @@ def _contact_ladder(case: RecoveryCase, cfg: dict, store=None) -> ActionType:
         (ActionType.NUDGE_EMAIL, "email"),
     ]
     enabled = [c for c in order if cfg["channels"][c[1]]["enabled"]] or [order[2]]
-    
+
     # Use merchant bandit for channel selection
     if store and hasattr(case, 'merchant_id') and case.merchant_id:
         try:
@@ -172,7 +175,7 @@ def _contact_ladder(case: RecoveryCase, cfg: dict, store=None) -> ActionType:
                     return action_type
         except Exception:
             pass  # Fall back to ladder
-    
+
     return enabled[min(len(case.attempt_times), len(enabled) - 1)][0]
 
 

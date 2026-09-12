@@ -16,9 +16,9 @@ from typing import Any
 
 import yaml
 from fastapi import FastAPI, Header, HTTPException, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import Response
+
 
 class _NoCacheStaticFiles(StaticFiles):
     """StaticFiles subclass that sends Cache-Control: no-cache so the browser
@@ -458,7 +458,7 @@ def request_human_action(case_id: str, payload: dict, x_agent_token: str = Heade
     options = payload.get("options")
 
     req = create_human_action_request(case, reason, context, options)
-    
+
     # Store the request
     store.conn.execute(
         "CREATE TABLE IF NOT EXISTS human_action_requests ("
@@ -469,7 +469,7 @@ def request_human_action(case_id: str, payload: dict, x_agent_token: str = Heade
     store.conn.execute(
         "INSERT INTO human_action_requests (request_id, case_id, reason, context, options, requested_at, deadline) "
         "VALUES (?,?,?,?,?,?,?)",
-        (req.request_id, req.case_id, req.reason, 
+        (req.request_id, req.case_id, req.reason,
          json.dumps(req.context), json.dumps(req.options), req.requested_at, req.deadline),
     )
     store.conn.commit()
@@ -498,7 +498,7 @@ def complete_human_action(request_id: str, payload: dict, x_agent_token: str = H
     """
     _require_agent_token(x_agent_token)
     store = _store()
-    
+
     row = store.conn.execute(
         "SELECT * FROM human_action_requests WHERE request_id=?", (request_id,)
     ).fetchone()
@@ -506,7 +506,7 @@ def complete_human_action(request_id: str, payload: dict, x_agent_token: str = H
         raise HTTPException(404, "request not found")
 
     from .workflow import HumanActionResult, apply_human_action_result
-    
+
     result = HumanActionResult(
         request_id=request_id,
         action_taken=payload.get("action_taken", ""),
@@ -525,7 +525,6 @@ def complete_human_action(request_id: str, payload: dict, x_agent_token: str = H
 
     case = store.get_case(row["case_id"])
     if case:
-        from .workflow import WorkflowState
         now = datetime.now(timezone.utc)
         case = apply_human_action_result(case, result, store, _cfg(), now)
 
@@ -543,12 +542,12 @@ def get_pending_human_actions(case_id: str, x_agent_token: str = Header("")) -> 
     """Get pending human action requests for a case."""
     _require_agent_token(x_agent_token)
     store = _store()
-    
+
     rows = store.conn.execute(
         "SELECT * FROM human_action_requests WHERE case_id=? AND status='pending'",
         (case_id,)
     ).fetchall()
-    
+
     return {
         "case_id": case_id,
         "requests": [
@@ -570,11 +569,11 @@ def get_human_action_queue(x_agent_token: str = Header("")) -> dict:
     """Get all pending human action requests (operator dashboard)."""
     _require_agent_token(x_agent_token)
     store = _store()
-    
+
     rows = store.conn.execute(
         "SELECT * FROM human_action_requests WHERE status='pending' ORDER BY requested_at"
     ).fetchall()
-    
+
     return {
         "queue": [
             {
@@ -927,9 +926,9 @@ def agent_tick(x_agent_token: str = Header("")) -> dict:
     _require_agent_token(x_agent_token)
     store = _store()
     cfg = _cfg()
-    from .workflow import WorkflowEngine
     from .executor import ChannelAdapter, VoiceProvider
-    
+    from .workflow import WorkflowEngine
+
     engine = WorkflowEngine(store, cfg, ChannelAdapter(), VoiceProvider())
     now = datetime.now(timezone.utc)
     executed = engine.run_autonomous_tick(now)
@@ -948,18 +947,18 @@ def agent_run_case(case_id: str, x_agent_token: str = Header("")) -> dict:
     case = store.get_case(case_id)
     if not case:
         raise HTTPException(404, "case not found")
-    
-    from .workflow import WorkflowEngine
+
     from .executor import ChannelAdapter, VoiceProvider
-    
+    from .workflow import WorkflowEngine
+
     engine = WorkflowEngine(store, cfg, ChannelAdapter(), VoiceProvider())
     now = datetime.now(timezone.utc)
-    
+
     plan = store.get_workflow_plan(case_id)
     if not plan:
         plan = engine.build_plan(case, now)
         store.save_workflow_plan(plan)
-    
+
     executed = engine.execute_next_step(plan, case, now)
     return {"executed": executed, "case_id": case_id, "plan_state": plan.current_state.value}
 
@@ -972,25 +971,24 @@ def agent_pause_case(case_id: str, x_agent_token: str = Header("")) -> dict:
     case = store.get_case(case_id)
     if not case:
         raise HTTPException(404, "case not found")
-    
+
     case.metadata = case.metadata or {}
     case.metadata["paused"] = True
     case.metadata["paused_at"] = datetime.now(timezone.utc).isoformat()
     case.touch()
     store.upsert_case(case)
-    
+
     plan = store.get_workflow_plan(case_id)
     if plan:
-        from .workflow import WorkflowState
         plan.metadata["paused"] = True
         plan.updated_at = datetime.now(timezone.utc).isoformat()
         store.save_workflow_plan(plan)
-    
+
     store.append_audit(AuditEvent(
         actor="operator", event_type="case.paused", case_id=case_id,
         payload={},
     ))
-    
+
     return {"status": "paused", "case_id": case_id}
 
 
@@ -1002,24 +1000,24 @@ def agent_resume_case(case_id: str, x_agent_token: str = Header("")) -> dict:
     case = store.get_case(case_id)
     if not case:
         raise HTTPException(404, "case not found")
-    
+
     if case.metadata:
         case.metadata["paused"] = False
         case.metadata["resumed_at"] = datetime.now(timezone.utc).isoformat()
         case.touch()
         store.upsert_case(case)
-    
+
     plan = store.get_workflow_plan(case_id)
     if plan:
         plan.metadata["paused"] = False
         plan.updated_at = datetime.now(timezone.utc).isoformat()
         store.save_workflow_plan(plan)
-    
+
     store.append_audit(AuditEvent(
         actor="operator", event_type="case.resumed", case_id=case_id,
         payload={},
     ))
-    
+
     return {"status": "resumed", "case_id": case_id}
 
 
@@ -1034,22 +1032,22 @@ def agent_inject_instruction(case_id: str, payload: dict, x_agent_token: str = H
     case = store.get_case(case_id)
     if not case:
         raise HTTPException(404, "case not found")
-    
+
     instruction = payload.get("instruction", "")
     if not instruction:
         raise HTTPException(422, "instruction required")
-    
+
     case.metadata = case.metadata or {}
     case.metadata["operator_instruction"] = instruction
     case.metadata["instruction_at"] = datetime.now(timezone.utc).isoformat()
     case.touch()
     store.upsert_case(case)
-    
+
     store.append_audit(AuditEvent(
         actor="operator", event_type="instruction.injected", case_id=case_id,
         payload={"instruction": instruction},
     ))
-    
+
     return {"status": "instruction_injected", "case_id": case_id, "instruction": instruction}
 
 
@@ -1059,21 +1057,21 @@ def agent_status(x_agent_token: str = Header("")) -> dict:
     _require_agent_token(x_agent_token)
     store = _store()
     cfg = _cfg()
-    
+
     cases = store.all_cases()
     active = [c for c in cases if c.status.value in ("open", "scheduled")]
     paused = [c for c in active if c.metadata and c.metadata.get("paused")]
-    
+
     # Count pending human actions
     pending_human = store.conn.execute(
         "SELECT COUNT(*) as cnt FROM human_action_requests WHERE status='pending'"
     ).fetchone()["cnt"]
-    
+
     # Bandit stats
     from .merchant_bandit import get_merchant_bandit
     bandit = get_merchant_bandit(store, cfg)
     bandit_stats = bandit.get_all_stats()
-    
+
     return {
         "active_cases": len(active),
         "paused_cases": len(paused),
@@ -1134,13 +1132,12 @@ def check_config_drift(x_agent_token: str = Header("")) -> dict:
     _require_agent_token(x_agent_token)
     store = _store()
     from .config_optimizer import get_config_optimizer
-    from .measure import build_report
-    
+
     optimizer = get_config_optimizer(store)
     cases = store.all_cases()
     treatment = [c for c in cases if c.group.value == "treatment"]
     recovery_rate = sum(1 for c in treatment if c.recovered_amount > 0) / max(len(treatment), 1)
-    
+
     proposals = optimizer.check_and_propose(recovery_rate)
     return {"recovery_rate": recovery_rate, "proposals_generated": len(proposals), "proposals": [p.__dict__ for p in proposals]}
 
@@ -1854,7 +1851,7 @@ def analytics_summary() -> dict[str, Any]:
     for name, fn in sections.items():
         try:
             out[name] = fn()
-        except Exception as exc:  # noqa: BLE001 — one bad section must not kill the tab
+        except Exception as exc:
             out[name] = {"error": str(exc)}
     return out
 
@@ -2527,8 +2524,8 @@ async def stream_events():
     """SSE endpoint that streams simulated recovery events in real-time.
     Dashboard subscribes and shows a live feed of case activity.
     """
-    import json as _json
     import asyncio as _aio
+    import json as _json
 
     store = _store()
     case_ids = [c.case_id for c in store.all_cases()[:8]]
@@ -2911,8 +2908,9 @@ def demo_run() -> dict[str, Any]:
         return summary()
 
     # Seed a realistic batch
-    from .agent import ingest_failure, plan_and_schedule
     from datetime import timedelta
+
+    from .agent import ingest_failure, plan_and_schedule
 
     segments = ["d2c_checkout", "qsr_restaurants", "saas_subscriptions", "edtech_emi"]
     failure_modes = [
@@ -2961,8 +2959,6 @@ def demo_run() -> dict[str, Any]:
         seeded += 1
 
     # Run a few tick cycles to execute scheduled actions
-    from .executor import ChannelAdapter, execute_action
-    from .models import Intervention
 
     executed = 0
     for case in store.all_cases()[:50]:  # process first 50
@@ -3005,7 +3001,7 @@ def dashboard_summary(limit: int = 50) -> dict[str, Any]:
     def _soft(fn, *args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except Exception as exc:  # noqa: BLE001 — one bad section must not kill the payload
+        except Exception as exc:
             return {"error": str(exc)}
 
     out: dict[str, Any] = {
@@ -3131,8 +3127,8 @@ def portfolio_recommendation(capacity_hours: float = 4.0) -> dict[str, Any]:
                 "greedy": {"selected": [], "total_ev_paise": 0},
                 "note": "no pending high-value cases"}
 
-    from .recovery_model import predict_recovery
     from .models import ActionType
+    from .recovery_model import predict_recovery
 
     items: list[PendingCase] = []
     for c in cases:
@@ -3225,7 +3221,8 @@ def export_csv(
     failure_class: str | None = None,
 ) -> Response:
     """Export cases as CSV for merchant download."""
-    import csv, io
+    import csv
+    import io
     store = _store()
     cases = store.all_cases()
     if status:
@@ -3440,7 +3437,6 @@ def case_replay(case_id: str) -> dict[str, Any]:
     actions = [a for a in store.actions_rows() if a.get("case_id") == case_id]
 
     from .classifier import classify
-    from .recovery_model import predict_recovery
     from .selector import select_next_action
 
     now = datetime.now(timezone.utc)
@@ -3484,7 +3480,7 @@ def case_replay(case_id: str) -> dict[str, Any]:
 
     # Step 3: Policy gate check
     step_num += 1
-    from .policy import evaluate, Decision
+    from .policy import evaluate
     gate = evaluate(case, now, cfg,
                     action_is_contact=True, money_action=False, now=now)
     steps.append({

@@ -27,7 +27,7 @@ from .models import (
 _AUDIT_CHAIN_LOCK_KEY = 722_001_001_001
 _GENESIS_HASH = "0" * 64
 
-_PG_SCHEMA = """
+_PG_SCHEMA = f"""
 CREATE TABLE IF NOT EXISTS cases (
   case_id TEXT PRIMARY KEY,
   payment_id TEXT,
@@ -69,11 +69,11 @@ CREATE TABLE IF NOT EXISTS webhook_events (
 CREATE TABLE IF NOT EXISTS chain_head (
   id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id),
   chain_index BIGINT NOT NULL DEFAULT -1,
-  last_hash TEXT NOT NULL DEFAULT '{genesis}'
+  last_hash TEXT NOT NULL DEFAULT '{_GENESIS_HASH}'
 );
 CREATE INDEX IF NOT EXISTS idx_audit_case ON audit(case_id);
 CREATE INDEX IF NOT EXISTS idx_actions_case ON actions(case_id);
-""".format(genesis=_GENESIS_HASH)
+"""
 
 
 def _qident(schema: str) -> str:

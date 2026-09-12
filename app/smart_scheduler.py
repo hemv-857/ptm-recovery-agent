@@ -241,7 +241,7 @@ class SmartScheduler:
         if customer_id not in self._profiles:
             profile = CustomerPreferenceProfile(
                 customer_id=customer_id,
-                channel_scores={ch: 0.5 for ch in ContactChannel},
+                channel_scores=dict.fromkeys(ContactChannel, 0.5),
             )
             self._profiles[customer_id] = profile
         return self._profiles[customer_id]

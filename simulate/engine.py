@@ -15,8 +15,8 @@ from app.agent import (
     record_installment_payment,
     write_off,
 )
-from app.installments import make_schedule as make_installment_schedule
 from app.executor import ChannelAdapter, execute_action
+from app.installments import make_schedule as make_installment_schedule
 from app.models import (
     ActionStatus,
     ActionType,

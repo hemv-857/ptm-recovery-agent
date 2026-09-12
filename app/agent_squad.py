@@ -2,16 +2,16 @@
 Each agent has a distinct role, capability, and communication protocol."""
 from __future__ import annotations
 
-import json
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
-from .models import ActionType, FailureClass, RecoveryCase
-from .tool_protocol import ToolCall, ToolPlan, ToolName, ToolCallStatus
 from .llm_planner import LLMPlanner
+from .models import ActionType, FailureClass, RecoveryCase
+from .tool_protocol import ToolName
 
 
 class AgentRole(str, Enum):
@@ -141,7 +141,6 @@ class ClassifierAgent(BaseAgent):
 
         # Run classification logic
         from .classifier import classify
-        from .models import Customer
         fp = type('FailedPayment', (), {
             'raw_error_code': case.failure_class.value,
             'error_description': '',
@@ -269,8 +268,6 @@ class NegotiatorAgent(BaseAgent):
 
     def _send_reminder(self, case: RecoveryCase, channel: str) -> dict:
         """Send payment reminder via specified channel."""
-        from .executor import execute_action
-        from .models import Intervention
         action_map = {
             "whatsapp": ActionType.NUDGE_WHATSAPP,
             "sms": ActionType.NUDGE_SMS,
@@ -528,7 +525,6 @@ class StrategistAgent(BaseAgent):
         steps = []
         for call in tool_plan.calls:
             from .workflow import WorkflowStep
-            from .models import ActionType
             action_type = self._tool_to_action_type(call.tool)
             if action_type:
                 scheduled = datetime.now(timezone.utc)

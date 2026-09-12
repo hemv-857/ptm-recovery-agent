@@ -3,20 +3,20 @@ anomaly detection, and multi-channel alerting."""
 from __future__ import annotations
 
 import json
-import uuid
 import threading
 import time
+import uuid
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
-from typing import Any, Callable
 
 import httpx
 
-from .store import Store
 from .cusum import CUSUMDetector
 from .degradation import DegradationDetector
+from .store import Store
 
 
 class AlertSeverity(str, Enum):
@@ -397,7 +397,7 @@ class AlertManager:
         for channel, handler in self._notification_handlers.items():
             try:
                 handler(alert, is_resolution)
-            except Exception as e:
+            except Exception:
                 # Log error but don't fail other channels
                 pass
 
@@ -603,8 +603,8 @@ class NotificationChannels:
     @staticmethod
     def webhook(url: str, secret: str = "") -> Callable:
         def handler(alert: Alert, is_resolution: bool = False):
-            import hmac
             import hashlib
+            import hmac
             payload = {
                 "alert": {
                     "id": alert.alert_id,

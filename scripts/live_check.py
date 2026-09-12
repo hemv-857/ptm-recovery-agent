@@ -26,7 +26,7 @@ import os
 
 import httpx
 
-from app.payment_processor import PaytmProcessor, PaytmProcessor
+from app.payment_processor import PaytmProcessor
 
 PAYMENT_PROCESSOR = os.getenv("PAYMENT_PROCESSOR", "paytm").lower()
 
@@ -50,7 +50,7 @@ def check(name: str, ok: bool, detail: str = "") -> None:
 
 
 if PAYMENT_PROCESSOR == "paytm":
-    print(f"[1/4] Paytm credentials")
+    print("[1/4] Paytm credentials")
     check("merchant ID present", bool(MERCHANT_ID))
     check("merchant key present", bool(MERCHANT_KEY))
     if not (MERCHANT_ID and MERCHANT_KEY):

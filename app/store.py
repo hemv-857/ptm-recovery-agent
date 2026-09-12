@@ -364,7 +364,7 @@ class Store:
     # ---- workflow plans ------------------------------------------------
     def save_workflow_plan(self, plan) -> None:
         import json
-        from .workflow import WorkflowState
+
         self.conn.execute(
             "INSERT INTO workflow_plans (case_id, current_state, steps, created_at, updated_at, metadata) "
             "VALUES (?,?,?,?,?,?) "
@@ -384,7 +384,8 @@ class Store:
 
     def get_workflow_plan(self, case_id: str):
         import json
-        from .workflow import WorkflowPlan, WorkflowStep, WorkflowState
+
+        from .workflow import WorkflowPlan, WorkflowState, WorkflowStep
         row = self.conn.execute(
             "SELECT * FROM workflow_plans WHERE case_id=?", (case_id,)
         ).fetchone()
@@ -439,7 +440,7 @@ def from_env(
     path: str | Path = "data/recovery.db",
     tenant: str = "default",
     database_url: str | None = None,
-) -> "Store":
+) -> Store:
     """Pick the persistence backend from DATABASE_URL.
 
     - unset / sqlite://  -> SQLite Store (default; tenant suffixes the file)

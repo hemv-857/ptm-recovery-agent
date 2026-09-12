@@ -38,7 +38,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from app.measure import fmt_rupees  # noqa: E402
+from app.measure import fmt_rupees
 
 REPORT = ROOT / "report.json"
 README = ROOT / "README.md"
@@ -57,10 +57,10 @@ def _replay_report() -> dict:
     """Fresh seed-42 batch -> report, using only documented commands."""
     import yaml
 
+    from app.measure import build_report
+    from app.store import Store
     from simulate.batch_generator import generate_batch
     from simulate.engine import run as engine_run
-    from app.store import Store
-    from app.measure import build_report
 
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     payments = generate_batch(cfg["simulation"]["batch_size"], T_START, seed=42)

@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from .models import CaseStatus, FailureClass, RecoveryCase
 from .measure import build_report
+from .models import CaseStatus, RecoveryCase
 
 
 @dataclass

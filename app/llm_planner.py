@@ -3,13 +3,17 @@ The LLM plans; rules gate; WorkflowEngine executes."""
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Any
 
-from .models import ActionType, FailureClass, RecoveryCase
-from .tool_protocol import ToolCall, ToolPlan, ToolName, ToolCallStatus, TOOL_SCHEMAS, get_available_tools_for_failure
+from .models import ActionType, RecoveryCase
+from .tool_protocol import (
+    TOOL_SCHEMAS,
+    ToolName,
+    ToolPlan,
+    get_available_tools_for_failure,
+)
 
 
 @dataclass
@@ -206,7 +210,6 @@ Generate a ToolPlan with 1-5 steps. Each step: tool, params, reasoning, expected
 def create_fallback_plan(case: RecoveryCase, cfg: dict, store=None) -> ToolPlan:
     """Create a rule-based fallback plan when LLM unavailable."""
     from .selector import select_next_action
-    from .policy import evaluate, Decision
 
     plan = ToolPlan(case_id=case.case_id)
     plan.metadata["fallback"] = "rule_based"
@@ -241,8 +244,6 @@ def create_fallback_plan(case: RecoveryCase, cfg: dict, store=None) -> ToolPlan:
 
 def _build_tool_params(case: RecoveryCase, action_type: ActionType, cfg: dict) -> dict:
     """Build tool params from action."""
-    from .copywriter import render, render_voice_script
-    from .payment_processor import client as paytm_client
 
     params = {}
     if action_type in (ActionType.NUDGE_WHATSAPP, ActionType.NUDGE_SMS, ActionType.NUDGE_EMAIL):
