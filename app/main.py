@@ -3014,13 +3014,18 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     store = _store()
     cfg = _cfg()
 
-    # Clear existing cases
+    # Clear existing data
     import sqlite3
     conn = sqlite3.connect(str(cfg.get("db_path", "/app/data/recovery.db")))
     conn.execute("DELETE FROM cases")
-    conn.execute("DELETE FROM audit_events")
-    conn.execute("DELETE FROM scheduled_actions")
-    conn.execute("DELETE FROM promises")
+    conn.execute("DELETE FROM actions")
+    conn.execute("DELETE FROM audit")
+    conn.execute("DELETE FROM webhook_events")
+    conn.execute("DELETE FROM workflow_plans")
+    conn.execute("DELETE FROM human_action_requests")
+    conn.execute("DELETE FROM config_proposals")
+    conn.execute("DELETE FROM reflection_reports")
+    conn.execute("DELETE FROM learning_patterns")
     conn.commit()
     conn.close()
 
