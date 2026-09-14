@@ -86,11 +86,10 @@ import threading, time as _time, urllib.request, urllib.error
 
 def _self_ping():
     _time.sleep(120)  # wait for uvicorn to be fully ready
-    port = int(os.getenv("PORT", "8000"))
-    url = f"http://127.0.0.1:{port}/report/baseline"
+    url = os.getenv("RENDER_EXTERNAL_URL", "https://paytm-recovery-agent.onrender.com") + "/report/baseline"
     while True:
         try:
-            req = urllib.request.Request(url)
+            req = urllib.request.Request(url, headers={"User-Agent": "keep-alive"})
             with urllib.request.urlopen(req, timeout=15) as resp:
                 print(f"[keep-alive] ping OK {resp.status}", flush=True)
         except Exception as e:
