@@ -3014,10 +3014,13 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     # Use mock processor for simulation to avoid real API calls
     import os
     os.environ["PAYMENT_PROCESSOR"] = "mock"
-    # Re-init the payment processor client
+    # Re-init the payment processor client in both modules
     from .payment_processor import get_processor
     import app.payment_processor as pp
     pp.client = get_processor()
+    # Also update executor's client reference
+    import app.executor as ex
+    ex.client = get_processor()
 
     store = _store()
     cfg = _cfg()
