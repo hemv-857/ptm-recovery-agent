@@ -3032,26 +3032,21 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     # Re-init store
     store = _store()
 
-    # Generate batch
+    # Generate batch and run simulation
     from datetime import datetime, timedelta, timezone
-    from .simulate.batch_generator import assign_groups, generate_batch
-    from .agent import ingest_failure, plan_and_schedule
+    from simulate.batch_generator import assign_groups, generate_batch
+    from simulate.engine import run
+    from .measure import build_report
 
-    t_start = datetime.now(timezone.utc) - timedelta(days=30)
+    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
     payments = generate_batch(n, t_start, seed=seed)
-    groups = assign_groups(payments, treatment_share=0.7, seed=seed)
+    groups = assign_groups(payments)
 
-    # Ingest
-    for p in payments:
-        ingest_failure(p, groups[p.payment_id], store, cfg)
-
-    # Run agent loop
-    for day in range(30):
-        now = t_start + timedelta(days=day)
-        engine.run_autonomous_tick(now)
+    # Run full simulation
+    world = run(payments, cfg, store)
 
     # Build final report
-    rep = build_report(store, cfg)
+    rep = build_report(store.all_cases(), store.actions_rows(), cfg)
     return {"seeded": n, "report": rep}
 
 
