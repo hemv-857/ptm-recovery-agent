@@ -81,6 +81,24 @@ app = FastAPI(
     ],
 )
 
+# ── Self-ping: keeps free-tier Render service alive ──
+import threading, time as _time, urllib.request, urllib.error
+
+def _self_ping():
+    _time.sleep(30)  # wait for app to be fully ready
+    port = int(os.getenv("PORT", "8000"))
+    url = f"http://127.0.0.1:{port}/report/baseline"
+    while True:
+        try:
+            req = urllib.request.Request(url)
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                print(f"[keep-alive] ping OK {resp.status}", flush=True)
+        except Exception as e:
+            print(f"[keep-alive] ping FAIL {e}", flush=True)
+        _time.sleep(300)
+
+threading.Thread(target=_self_ping, daemon=True).start()
+
 _STATIC = Path(__file__).parent / "static"
 if _STATIC.is_dir():
     app.mount("/static", _NoCacheStaticFiles(directory=_STATIC), name="static")
