@@ -3033,17 +3033,18 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     store = _store()
 
     # Generate batch and run simulation
-    from datetime import datetime, timedelta, timezone
-    from simulate.batch_generator import assign_groups, generate_batch
+    from datetime import datetime, timezone
+
+    from simulate.batch_generator import generate_batch
     from simulate.engine import run
+
     from .measure import build_report
 
     t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
     payments = generate_batch(n, t_start, seed=seed)
-    groups = assign_groups(payments)
 
     # Run full simulation
-    world = run(payments, cfg, store)
+    run(payments, cfg, store)
 
     # Build final report
     rep = build_report(store.all_cases(), store.actions_rows(), cfg)
