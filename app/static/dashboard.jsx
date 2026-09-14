@@ -348,6 +348,7 @@ function getErrorUI(){
         if(error) return getErrorUI();
 
         const active=liveRep||rep;
+        if(!active)return getErrorUI();
         const hd=active.headline||{},batch=active.batch||{},cost=active.cost||{},perClass=active.per_class||{},promises=active.promises||{};
         // ── Phase 2: notification center items — approvals, incidents, drift, opt-outs ──
         const notifItems=[];

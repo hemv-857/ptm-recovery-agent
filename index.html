@@ -689,6 +689,7 @@
         if(error)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div style={{textAlign:"center"}}><p style={{fontSize:16,marginBottom:8}}>Failed to load report</p><p style={{color:"var(--dim)",fontSize:11}}>Start with: <code className="mono">uvicorn app.main:app --port 8000</code></p><button className="btn" style={{marginTop:12}} onClick={fetchBaseline}>Retry</button></div></div>;
 
         const active=liveRep||rep;
+        if(!active)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div style={{textAlign:"center"}}><p style={{fontSize:16,marginBottom:8}}>Connecting to server…</p><p style={{color:"var(--dim)",fontSize:11}}>Render may be waking up (free tier cold start ~30s).</p><button className="btn" style={{marginTop:12}} onClick={fetchBaseline}>Retry</button></div></div>;
         const hd=active.headline||{},batch=active.batch||{},cost=active.cost||{},perClass=active.per_class||{},promises=active.promises||{};
         const heroJump=()=>{setTab("hub");setTimeout(()=>{const el=document.querySelector(".hero");if(!el)return;el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1100)},120)};
         const naiveRate=hd.naive_recovery_rate!=null?hd.naive_recovery_rate:null;
