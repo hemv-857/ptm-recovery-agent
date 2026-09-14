@@ -20,7 +20,6 @@
 }
 
         :root{--bg:#F5F7FA;--card:#FFFFFF;--card-hover:#F0F4F8;--bdr:#E8ECF0;--bdr-h:#D0D5DD;--txt:#1A1A1A;--sec:#666666;--dim:#999999;--grn:#22c55e;--blu:#002970;--pur:#00BAF2;--red:#E42352;--yel:#eab308;--cyn:#00BAF2;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--paytm-navy:#002970;--paytm-cyan:#00BAF2;--paytm-blue:#002970;--paytm-crimson:#E42352;--paytm-light:#7FDBFF;--gradient:linear-gradient(135deg,#002970,#00BAF2);--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1)}
-        --card:#FFFFFF;--card-hover:#F0F4F8;--bdr:#E8ECF0;--bdr-h:#D0D5DD;--txt:#1A1A1A;--sec:#666666;--dim:#999999;--grn:#22c55e;--blu:#002970;--pur:#00BAF2;--red:#E42352;--yel:#eab308;--cyn:#00BAF2;  --mono:'JetBrains Mono',monospace;--font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--paytm-navy:#002970;--paytm-cyan:#00BAF2;--paytm-blue:#002970;--paytm-crimson:#E42352;--paytm-light:#7FDBFF;--gradient:linear-gradient(135deg,#002970,#00BAF2);--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1)}
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:var(--font-sans);background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.2)}
@@ -34,7 +33,7 @@
         @keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
         @keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
         @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-        .a-fu{animation:fadeUp .45s ease both}.a-fi{animation:fadeIn .35s ease both}.a-sc{animation:scaleIn .35s ease both}.a-si{animation:slideIn .35s ease both}
+        .a-fu{animation:fadeUp .45s ease both}
         .d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}.d5{animation-delay:.2s}.d6{animation-delay:.24s}
 
         /* Layout */
@@ -60,8 +59,6 @@
         .badge.warn{border-color:rgba(234,179,8,.4);color:#ca8a04;background:rgba(234,179,8,.06)}
         .badge.live{border-color:rgba(0,41,112,.4);color:var(--paytm-blue);animation:pulse 2s infinite;background:rgba(0,41,112,.06)}
         .badge.pur{border-color:rgba(0,186,242,.4);color:#0084B4;background:rgba(0,186,242,.06)}
-        .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
-        .dot.grn{background:var(--grn)}.dot.blu{background:var(--blu)}.dot.red{background:var(--red)}.dot.yel{background:var(--yel)}
         .content{padding:22px 24px}
 
         /* Cards — hover lift */
@@ -86,8 +83,7 @@
         .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
         .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
         .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
-        .grid-sidebar{display:grid;grid-template-columns:360px 1fr;gap:12px}
-        @media(max-width:1100px){.grid-2,.grid-3,.grid-4,.grid-sidebar{grid-template-columns:1fr}}
+        @media(max-width:1100px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
         @media(max-width:768px){.grid-4{grid-template-columns:1fr 1fr}}
 
         /* Buttons — lift on hover */
@@ -102,11 +98,11 @@
         .btn-grn{background:var(--grn)}.btn-grn:hover{box-shadow:0 4px 12px rgba(34,197,94,.2)}
         .btn-red{background:var(--red)}.btn-red:hover{box-shadow:0 4px 12px rgba(228,35,82,.2)}
         .btn-yel{background:var(--yel);color:#000}.btn-yel:hover{box-shadow:0 4px 12px rgba(234,179,8,.2)}
-        .btn-pur{background:var(--paytm-cyan)}.btn-pur:hover{box-shadow:0 4px 12px rgba(0,186,242,.2)}
+
 
         /* Tags */
         .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:9px;font-weight:700;background:var(--card-hover);color:var(--sec);font-family:var(--mono);border:1px solid var(--bdr)}
-        .tag-black{background:#1A1A1A;color:#fff}
+
         .tag-green{background:rgba(34,197,94,.08);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
         .tag-red{background:rgba(228,35,82,.08);color:#DC2626;border:1px solid rgba(228,35,82,.2)}
         .tag-yellow{background:rgba(234,179,8,.08);color:#ca8a04;border:1px solid rgba(234,179,8,.2)}
@@ -154,9 +150,7 @@
         @media(max-width:900px){.hero{grid-template-columns:1fr}}
 
         /* Queue item */
-        .queue-item{padding:9px 11px;border-radius:7px;border:1px solid var(--bdr);cursor:pointer;transition:all .15s;background:var(--card)}
-        .queue-item:hover{border-color:var(--bdr-h);background:var(--card-hover)}
-        .queue-item.selected{border-color:var(--paytm-blue);background:rgba(0,41,112,.04)}
+
 
         /* Chips */
         .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
@@ -174,7 +168,7 @@
 
         /* Skeleton shimmer */
         .skeleton{background:linear-gradient(90deg,var(--bdr) 25%,var(--card-hover) 50%,var(--bdr) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
-        .sk-line{height:14px;margin-bottom:8px}
+
         .sk-card{height:80px;border-radius:10px;margin-bottom:12px}
 
         /* Architecture flow */
@@ -212,11 +206,10 @@
         @media(max-width:600px){.feat-grid{grid-template-columns:1fr}}
 
         /* Tech tags */
-        .tech-row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
-        .tech-tag{background:var(--card-hover);border:1px solid var(--bdr);border-radius:5px;padding:3px 8px;font-size:9px;color:var(--sec);font-weight:500}
+
 
         /* CTA */
-        .cta-card{background:linear-gradient(135deg,rgba(0,41,112,.04),rgba(0,186,242,.04));border:1px solid rgba(0,41,112,.1);border-radius:12px;padding:24px;text-align:center}
+
 
         /* Mono + tabular */
         .mono{font-family:var(--mono)}.tabular{font-variant-numeric:tabular-nums}
@@ -270,16 +263,10 @@
         .wf-amt{width:92px;text-align:right;font-family:var(--mono);font-size:11px;font-weight:700;flex-shrink:0}
 
         /* Merchant profile cards */
-        .mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-        .mp-card{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:10px;transition:all .2s}
-        .mp-card:hover{border-color:var(--bdr-h);box-shadow:var(--shadow)}
-        .mp-card.detected{border-color:rgba(0,41,112,.3);background:rgba(0,41,112,.03)}
-        @media(max-width:900px){.mp-grid{grid-template-columns:1fr 1fr}}
+
 
         /* Signal list */
-        .signal-row{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:10px;color:var(--sec);border-bottom:1px solid var(--bdr)}
-        .signal-row:last-child{border-bottom:none}
-        .signal-row .dot{margin-top:3px;flex-shrink:0}
+
 
         /* JSON output block */
         .json-out{background:var(--card);padding:10px;border-radius:5px;font-family:var(--mono);font-size:10px;white-space:pre-wrap;max-height:220px;overflow:auto;margin-top:10px;border:1px solid var(--bdr)}
@@ -344,7 +331,7 @@
         .spinner{width:24px;height:24px;border:3px solid var(--bdr);border-top-color:var(--paytm-blue);border-radius:50%;animation:spin .6s linear infinite;margin:20px auto}
 
         /* GSAP animated elements */
-        .gsap-fade{opacity:0;transform:translateY(12px)}
+
 
         /* Agent control / stat boxes */
         .agent-control-tab .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -368,7 +355,6 @@
         const CONNECTION_DIST=120;
         const PARTICLE_COUNT=80;
         const CYAN=[0,186,242];  // Paytm cyan #00BAF2
-        const BLUE=[0,41,112];   // Paytm navy #002970
         let mouse={x:-1000,y:-1000};
 
         function resize(){W=cvs.width=window.innerWidth;H=cvs.height=window.innerHeight}
@@ -454,11 +440,6 @@
         gsap.from('.content',{y:30,opacity:0,duration:.5,ease:'power2.out',delay:.4});
     });
 
-    // ── GSAP tab transition helper ──
-    window.__gsapTabIn=function(selector){
-        if(typeof gsap==='undefined')return;
-        gsap.from(selector,{opacity:0,y:14,duration:.35,ease:'power2.out',stagger:.05});
-    };
     </script>
     <script>window.__API_BASE__ = "";</script>
     <script type="text/babel">
@@ -470,7 +451,7 @@
     const label = t => {if(!t)return"";const m={"INSUFFICIENT_FUNDS":"Insufficient Funds","HARD_DECLINE":"Hard Decline","NETWORK_TIMEOUT":"Network Timeout","3DS_OTP_CHALLENGE_TIMEOUT":"3DS OTP Timeout","GATEWAY_TIMEOUT":"Gateway Timeout","ISSUER_UNAVAILABLE":"Issuer Unavailable","SUBSCRIPTION_FAILED":"Subscription Failed","CUSTOMER_ABANDONMENT":"Customer Abandonment","INVOICE_OVERDUE":"Invoice Overdue","PRICE_SHOCK":"Price Shock","LATE_AUTH":"Late Auth","NETWORK_FAILURE":"Network Failure","CARD_EXPIRED":"Card Expired","OVERDUE_GENUINE":"Overdue Genuine","PAYMENT_DECLINED":"Payment Declined"};return m[t]||t.replace(/_/g," ").replace(/\b\w/g,l=>l.toUpperCase())};
     const FAILURE_TYPES=["INSUFFICIENT_FUNDS","HARD_DECLINE","NETWORK_TIMEOUT","3DS_OTP_CHALLENGE_TIMEOUT","GATEWAY_TIMEOUT","ISSUER_UNAVAILABLE","SUBSCRIPTION_FAILED","CUSTOMER_ABANDONMENT"];
     // Paytm brand palette (dashboard.css is the source of truth)
-    const PAYTM_NAVY="#002970",PAYTM_CYAN="#00BAF2",PAYTM_CRIMSON="#E42352",PAYTM_LIGHT="#7FDBFF";
+    const PAYTM_NAVY="#002970",PAYTM_CYAN="#00BAF2",PAYTM_CRIMSON="#E42352";
     const CHANNEL_COLORS={whatsapp:"#22c55e",sms:PAYTM_CYAN,email:"#a78bfa",voice:"#eab308",retry:"#64748b",payment_link:"#4ade80",other:"#94a3b8"};
 
     // ── Audio ──
@@ -582,7 +563,6 @@
         const[summary,setSummary]=useState(null);
         const[merchant,setMerchant]=useState(null);
         const[ticker,setTicker]=useState([]);
-        const[healthScore,setHealthScore]=useState(null);
         const[engineStats,setEngineStats]=useState(null);
         const[sseEvents,setSseEvents]=useState([]);
         const[seedRun,setSeedRun]=useState(null);          // {current,total} | null — first-load seed overlay

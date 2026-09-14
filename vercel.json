@@ -39,6 +39,11 @@
     { "source": "/stream/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/stream/$1" },
     { "source": "/merchant/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/merchant/$1" },
     { "source": "/provider(.*)", "destination": "https://paytm-recovery-agent.onrender.com/provider$1" },
-    { "source": "/settings(.*)", "destination": "https://paytm-recovery-agent.onrender.com/settings$1" }
+    { "source": "/settings(.*)", "destination": "https://paytm-recovery-agent.onrender.com/settings$1" },
+    { "source": "/agent/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/agent/$1" },
+    { "source": "/human-action/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/human-action/$1" },
+    { "source": "/learning/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/learning/$1" },
+    { "source": "/onboarding/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/onboarding/$1" },
+    { "source": "/reflection/(.*)", "destination": "https://paytm-recovery-agent.onrender.com/reflection/$1" }
   ]
 }
