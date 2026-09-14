@@ -246,6 +246,12 @@ function getErrorUI(){
 
         useEffect(()=>{fetchBaseline()},[fetchBaseline]);
 
+        // Keep tab in sync with URL hash (back/forward/direct navigation)
+        useEffect(()=>{
+            const onHash=()=>{const h=(location.hash||"#hub").slice(1)||"hub";setTabState(h)};
+            window.addEventListener("hashchange",onHash);return()=>window.removeEventListener("hashchange",onHash);
+        },[]);
+
         // P0: guided tour — start on request (▶ Tour button) or via #tour deep link
         useEffect(()=>{if(location.hash==="#tour"){setTab("hub");setTourIdx(0)}},[]);
         useEffect(()=>{if(running)return;const id=setInterval(fetchBaseline,30000);return()=>clearInterval(id)},[running,fetchBaseline]);
@@ -296,7 +302,7 @@ function getErrorUI(){
 
         const runBatch=useCallback(()=>{
             if(running)return;setRunning(true);setProgress({current:0,total:1});setLiveRep(null);
-            const wsHost=location.hostname==='paytm-recovery-agent.vercel.app'?'paytm-recovery-agent.onrender.com':location.host;
+            const wsHost=location.hostname.endsWith('.vercel.app')?'paytm-recovery-agent.onrender.com':location.host;
             const wsProto=location.protocol==='https:'?'wss:':'ws:';
             const ws=new WebSocket(`${wsProto}//${wsHost}/ws/replay?seed=42&cases=200`);
             wsRef.current=ws;
