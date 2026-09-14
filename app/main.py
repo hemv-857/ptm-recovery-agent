@@ -9,6 +9,11 @@ import asyncio
 import json
 import os
 import random
+import sys
+import threading
+import time as _time
+import urllib.error
+import urllib.request
 from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -82,8 +87,6 @@ app = FastAPI(
 )
 
 # ── Self-ping: keeps free-tier Render service alive ──
-import threading, time as _time, urllib.request, urllib.error, sys
-
 def _self_ping():
     _time.sleep(120)  # wait for uvicorn to be fully ready
     url = os.getenv("RENDER_EXTERNAL_URL", "https://paytm-recovery-agent.onrender.com") + "/report/baseline"
