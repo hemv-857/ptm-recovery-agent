@@ -3046,11 +3046,6 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
         ingest_failure(p, groups[p.payment_id], store, cfg)
 
     # Run agent loop
-    from .executor import ChannelAdapter, VoiceProvider
-    from .workflow import WorkflowEngine
-    from .measure import build_report
-
-    engine = WorkflowEngine(store, cfg, ChannelAdapter(), VoiceProvider())
     for day in range(30):
         now = t_start + timedelta(days=day)
         engine.run_autonomous_tick(now)
