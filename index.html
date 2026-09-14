@@ -689,8 +689,7 @@
         if(error)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div style={{textAlign:"center"}}><p style={{fontSize:16,marginBottom:8}}>Failed to load report</p><p style={{color:"var(--dim)",fontSize:11}}>Start with: <code className="mono">uvicorn app.main:app --port 8000</code></p><button className="btn" style={{marginTop:12}} onClick={fetchBaseline}>Retry</button></div></div>;
 
         const active=liveRep||rep;
-        if(!active)return<div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:"100vh"}}><div style={{textAlign:"center"}}><p style={{fontSize:16,marginBottom:8}}>Connecting to server…</p><p style={{color:"var(--dim)",fontSize:11}}>Render may be waking up (free tier cold start ~30s).</p><button className="btn" style={{marginTop:12}} onClick={fetchBaseline}>Retry</button></div></div>;
-        const hd=active.headline||{},batch=active.batch||{},cost=active.cost||{},perClass=active.per_class||{},promises=active.promises||{};
+        const hd=active?.headline||{},batch=active?.batch||{},cost=active?.cost||{},perClass=active?.per_class||{},promises=active?.promises||{};
         const heroJump=()=>{setTab("hub");setTimeout(()=>{const el=document.querySelector(".hero");if(!el)return;el.scrollIntoView({behavior:"smooth",block:"center"});el.classList.add("flash");setTimeout(()=>el.classList.remove("flash"),1100)},120)};
         const naiveRate=hd.naive_recovery_rate!=null?hd.naive_recovery_rate:null;
         const blocks=active.policy_transparency?.blocked_actions||{};
@@ -746,6 +745,9 @@
                     </div>
 
                     <div className="content">
+                        {!active&&!loading&&<div style={{background:"rgba(234,179,8,.08)",border:"1px solid rgba(234,179,8,.25)",borderRadius:8,padding:"10px 14px",marginBottom:14,fontSize:11,color:"var(--yel)",display:"flex",alignItems:"center",gap:8}}>
+                            ⏳ Render is waking up (free tier cold start). Dashboard data will appear shortly. <button className="btn btn-xs btn-outline" onClick={fetchBaseline} style={{fontSize:10}}>Retry</button>
+                        </div>}
                         {tab==="hub"&&<HubTab hd={hd} batch={batch} cost={cost} perClass={perClass} promises={promises} blocks={blocks} cpir={cpir} naiveRate={naiveRate} cases={cases} running={running} progress={progress} liveRep={liveRep} dismissLive={dismissLive} onCaseClick={id=>{setSelectedCase(id);setAuditOpen(true)}} API={API} funnel={funnel} approval={approval} budget={budget} ticker={ticker}/>}
                         {tab==="ledger"&&<LedgerTab cases={cases} onCaseClick={id=>{setSelectedCase(id);setAuditOpen(true)}} API={API} notify={notify}/>}
                         {tab==="engine"&&<EngineTab bandit={bandit} cusum={cusum} budget={budget} incidents={incidents} API={API} notify={notify} engineStats={engineStats} merchant={merchant} setMerchant={setMerchant} sseEvents={sseEvents}/>}
