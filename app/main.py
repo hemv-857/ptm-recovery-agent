@@ -3006,6 +3006,55 @@ def demo_run() -> dict[str, Any]:
     }
 
 
+@app.post("/demo/full-batch", tags=["demo"])
+def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
+    """Run the complete batch simulation (like scripts/run_batch.py) and return the report.
+    This creates a proper RCT with treatment/control groups and simulates the full agent loop.
+    """
+    store = _store()
+    cfg = _cfg()
+
+    # Clear existing cases
+    import sqlite3
+    conn = sqlite3.connect(str(cfg.get("db_path", "/app/data/recovery.db")))
+    conn.execute("DELETE FROM cases")
+    conn.execute("DELETE FROM audit_events")
+    conn.execute("DELETE FROM scheduled_actions")
+    conn.execute("DELETE FROM promises")
+    conn.commit()
+    conn.close()
+
+    # Re-init store
+    store = _store()
+
+    # Generate batch
+    from datetime import datetime, timedelta, timezone
+    from .simulate.batch_generator import assign_groups, generate_batch
+    from .agent import ingest_failure, plan_and_schedule
+
+    t_start = datetime.now(timezone.utc) - timedelta(days=30)
+    payments = generate_batch(n, t_start, seed=seed)
+    groups = assign_groups(payments, treatment_share=0.7, seed=seed)
+
+    # Ingest
+    for p in payments:
+        ingest_failure(p, groups[p.payment_id], store, cfg)
+
+    # Run agent loop
+    from .executor import ChannelAdapter, VoiceProvider
+    from .workflow import WorkflowEngine
+    from .measure import build_report
+
+    engine = WorkflowEngine(store, cfg, ChannelAdapter(), VoiceProvider())
+    for day in range(30):
+        now = t_start + timedelta(days=day)
+        engine.run_autonomous_tick(now)
+
+    # Build final report
+    rep = build_report(store, cfg)
+    return {"seeded": n, "report": rep}
+
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  Aggregated dashboard summary — one round-trip instead of 13 parallel fetches
 # ═══════════════════════════════════════════════════════════════════════════
