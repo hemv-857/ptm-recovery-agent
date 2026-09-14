@@ -3011,6 +3011,14 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     """Run the complete batch simulation (like scripts/run_batch.py) and return the report.
     This creates a proper RCT with treatment/control groups and simulates the full agent loop.
     """
+    # Use mock processor for simulation to avoid real API calls
+    import os
+    os.environ["PAYMENT_PROCESSOR"] = "mock"
+    # Re-init the payment processor client
+    from .payment_processor import get_processor
+    import app.payment_processor as pp
+    pp.client = get_processor()
+
     store = _store()
     cfg = _cfg()
 
