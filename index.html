@@ -591,26 +591,29 @@
 
         const fetchBaseline=useCallback(async()=>{
             try{
-                const[r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r13]=await Promise.all([
-                    fetch(`${API}/report/baseline`),fetch(`${API}/cases/recent?limit=50`),
-                    fetch(`${API}/security/report`),fetch(`${API}/budget`),
-                    fetch(`${API}/analytics/bandit`),fetch(`${API}/analytics/cusum`),
-                    fetch(`${API}/incidents`),fetch(`${API}/approval/queue`),
-                    fetch(`${API}/analytics/funnel`),fetch(`${API}/analytics/forecast`),
-                    fetch(`${API}/analytics/calibration`),fetch(`${API}/benchmark/compare`),
-                    fetch(`${API}/merchant/profile`),
-                ]);
-                if(r1.ok)setRep(await r1.json());
-                if(r2.ok)setCases((await r2.json()).cases);
-                if(r3.ok)setSecurity(await r3.json());
-                if(r4.ok)setBudget(await r4.json());
-                if(r5.ok)setBandit(await r5.json());
-                if(r6.ok)setCusum(await r6.json());
-                if(r7.ok)setIncidents(await r7.json());
-                if(r8.ok)setApproval(await r8.json());
-                if(r9.ok)setFunnel(await r9.json());
-                if(r10.ok||r11.ok||r12.ok)setEngineStats({forecast:r10.ok?await r10.json():null,calibration:r11.ok?await r11.json():null,benchmark:r12.ok?await r12.json():null});
-                if(r13.ok)setMerchant(await r13.json());
+                const urls=[
+                    `${API}/report/baseline`,`${API}/cases/recent?limit=50`,
+                    `${API}/security/report`,`${API}/budget`,
+                    `${API}/analytics/bandit`,`${API}/analytics/cusum`,
+                    `${API}/incidents`,`${API}/approval/queue`,
+                    `${API}/analytics/funnel`,`${API}/analytics/forecast`,
+                    `${API}/analytics/calibration`,`${API}/benchmark/compare`,
+                    `${API}/merchant/profile`,
+                ];
+                const results=await Promise.allSettled(urls.map(u=>fetch(u)));
+                const ok=i=>results[i].status==="fulfilled"&&results[i].value.ok;
+                const json=async i=>ok(i)?await results[i].value.json():null;
+                if(ok(0))setRep(await json(0));
+                if(ok(1)){const d=await json(1);if(d?.cases)setCases(d.cases)}
+                if(ok(2))setSecurity(await json(2));
+                if(ok(3))setBudget(await json(3));
+                if(ok(4))setBandit(await json(4));
+                if(ok(5))setCusum(await json(5));
+                if(ok(6))setIncidents(await json(6));
+                if(ok(7))setApproval(await json(7));
+                if(ok(8))setFunnel(await json(8));
+                if(ok(9)||ok(10)||ok(11))setEngineStats({forecast:ok(9)?await json(9):null,calibration:ok(10)?await json(10):null,benchmark:ok(11)?await json(11):null});
+                if(ok(12))setMerchant(await json(12));
                 setLastUpdated(new Date());
                 setLoading(false);setError(false);
             }catch(e){setError(true);setLoading(false)}
