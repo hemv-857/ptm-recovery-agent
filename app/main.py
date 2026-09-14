@@ -82,7 +82,7 @@ app = FastAPI(
 )
 
 # ── Self-ping: keeps free-tier Render service alive ──
-import threading, time as _time, urllib.request, urllib.error
+import threading, time as _time, urllib.request, urllib.error, sys
 
 def _self_ping():
     _time.sleep(120)  # wait for uvicorn to be fully ready
@@ -96,7 +96,8 @@ def _self_ping():
             print(f"[keep-alive] ping FAIL {e}", flush=True)
         _time.sleep(300)
 
-threading.Thread(target=_self_ping, daemon=True).start()
+if "pytest" not in sys.modules and not any("test" in arg for arg in sys.argv):
+    threading.Thread(target=_self_ping, daemon=True).start()
 
 _STATIC = Path(__file__).parent / "static"
 if _STATIC.is_dir():
