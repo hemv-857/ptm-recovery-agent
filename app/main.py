@@ -3015,8 +3015,9 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     import os
     os.environ["PAYMENT_PROCESSOR"] = "mock"
     # Re-init the payment processor client in both modules
-    from .payment_processor import get_processor
     import app.payment_processor as pp
+
+    from .payment_processor import get_processor
     pp.client = get_processor()
     # Also update executor's client reference
     import app.executor as ex
