@@ -1627,7 +1627,8 @@
         const[selected,setSelected]=useState(null);
         const[step,setStep]=useState("select");
         const[setupResult,setSetupResult]=useState(null);
-        useEffect(()=>{fetch(`${API}/onboarding/profiles`).then(r=>r.ok?r.json():null).then(d=>{if(d)setProfiles(d.profiles||[])}).catch(()=>{})},[API]);
+        const fetchProfiles=useCallback(()=>{fetch(`${API}/onboarding/profiles`).then(r=>r.ok?r.json():null).then(d=>{if(d)setProfiles(d.profiles||[])}).catch(()=>{})},[API]);
+        useEffect(()=>{fetchProfiles();if(profiles.length===0){const id=setInterval(fetchProfiles,5000);return()=>clearInterval(id)}},[API,fetchProfiles,profiles.length]);
         const doSetup=async(profile)=>{
             setSelected(profile);setStep("configuring");
             try{const r=await fetch(`${API}/onboarding/setup`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({profile_id:profile.id,test_mode:true})});if(r.ok){const d=await r.json();setSetupResult(d);setStep("done");notify("Onboarding complete!")}else notify("Setup failed")}catch(e){notify("Setup failed")}
