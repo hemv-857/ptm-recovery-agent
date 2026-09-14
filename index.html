@@ -20,6 +20,7 @@
 }
 
         :root{--bg:#F5F7FA;--card:#FFFFFF;--card-hover:#F0F4F8;--bdr:#E8ECF0;--bdr-h:#D0D5DD;--txt:#1A1A1A;--sec:#666666;--dim:#999999;--grn:#22c55e;--blu:#002970;--pur:#00BAF2;--red:#E42352;--yel:#eab308;--cyn:#00BAF2;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--paytm-navy:#002970;--paytm-cyan:#00BAF2;--paytm-blue:#002970;--paytm-crimson:#E42352;--paytm-light:#7FDBFF;--gradient:linear-gradient(135deg,#002970,#00BAF2);--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 12px rgba(0,0,0,.1)}
+        [data-theme="dark"]{--bg:#0A0F1A;--card:#141B2D;--card-hover:#1E2740;--bdr:#1E2D45;--bdr-h:#2D3A5E;--txt:#F1F5F9;--sec:#94A3B8;--dim:#64748B;--grn:#4ADE80;--blu:#60A5FA;--pur:#7FDBFF;--red:#F87171;--yel:#FBBF24;--cyn:#00BAF2;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-lg:0 4px 12px rgba(0,0,0,.4)}
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:var(--font-sans);background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden;line-height:1.5}
         ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px}::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,.2)}
@@ -552,6 +553,8 @@
         const[toast,setToast]=useState(null);
         const[soundEnabled,setSoundEnabled]=useState(true);
         const[autoPilot,setAutoPilot]=useState(false);
+        const[theme,setTheme]=useState(()=>localStorage.getItem("theme")||"light");
+        useEffect(()=>{document.documentElement.setAttribute("data-theme",theme);localStorage.setItem("theme",theme)},[theme]);
         const[lastUpdated,setLastUpdated]=useState(null);
         const[security,setSecurity]=useState(null);
         const[budget,setBudget]=useState(null);
@@ -735,6 +738,9 @@
                         </div>
                         <div className="tb-right">
                             <button className="btn btn-sm btn-outline" onClick={()=>{setTab("hub");setTourIdx(0)}}>▶ Tour</button>
+                            <div className="sound-toggle" onClick={()=>{setTheme(t=>t==="light"?"dark":"light");notify("Switched to "+(theme==="light"?"dark":"light")+" mode")}} style={{cursor:"pointer"}}>
+                                {theme==="light"?"☀️":"🌙"}
+                            </div>
                             <div className="sound-toggle" onClick={()=>{setSoundEnabled(!soundEnabled);notify(soundEnabled?"Muted":"Sound on")}}>{soundEnabled?"🔊":"🔇"}</div>
                             <div className={`sound-toggle ${autoPilot?"tag-blue":""}`} onClick={()=>{setAutoPilot(!autoPilot);notify(autoPilot?"Auto-pilot off":"Auto-pilot on")}} style={autoPilot?{borderColor:"rgba(0,41,112,.4)",color:"var(--blu)"}:{}}>
                                 {autoPilot?"⚡ AUTO":"⚡ OFF"}
