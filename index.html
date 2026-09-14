@@ -345,6 +345,14 @@
 
         /* GSAP animated elements */
         .gsap-fade{opacity:0;transform:translateY(12px)}
+
+        /* Agent control / stat boxes */
+        .agent-control-tab .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+        .stat-box{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center}
+        .stat-label{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--dim);margin-bottom:4px}
+        .stat-value{font-size:20px;font-weight:800;font-family:var(--mono)}
+        .muted{color:var(--dim);font-size:11px}
+        .bg-green-strong{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2)}
     </style>
 </head>
 <body>
@@ -724,6 +732,8 @@
                         {[{id:"engine",icon:"⚙️",label:"Engine & ROI"},{id:"analytics",icon:"📈",label:"Analytics"}].map(n=><div key={n.id} className={`nav-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}><span className="icon">{n.icon}</span>{n.label}</div>)}
                         <div className="nav-section">Operations</div>
                         {[{id:"tools",icon:"🛠",label:"Tools"},{id:"security",icon:"🛡",label:"Security"}].map(n=><div key={n.id} className={`nav-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}><span className="icon">{n.icon}</span>{n.label}</div>)}
+                        <div className="nav-section">Agent</div>
+                        {[{id:"agent",icon:"🤖",label:"Agent Control"},{id:"reflection",icon:"🧠",label:"Reflection"},{id:"learning",icon:"📚",label:"Learning"},{id:"onboarding",icon:"🚀",label:"Setup"}].map(n=><div key={n.id} className={`nav-item ${tab===n.id?"active":""}`} onClick={()=>setTab(n.id)}><span className="icon">{n.icon}</span>{n.label}</div>)}
                     </nav>
                     <div className="sidebar-footer">Paytm Recovery Agent
                         <div className="sidebar-disclaimer">Built as a concept for the Paytm Hackathon. Not an official Paytm product.</div>
@@ -761,6 +771,10 @@
                         {tab==="analytics"&&<AnalyticsTab summary={summary} setSummary={setSummary} API={API}/>}
                         {tab==="tools"&&<ToolsTab API={API} notify={notify}/>}
                         {tab==="security"&&<SecurityTab security={security} API={API} notify={notify}/>}
+                        {tab==="agent"&&<AgentControlTab API={API} notify={notify}/>}
+                        {tab==="reflection"&&<ReflectionTab API={API} notify={notify}/>}
+                        {tab==="learning"&&<LearningTab API={API} notify={notify}/>}
+                        {tab==="onboarding"&&<OnboardingTab API={API} notify={notify}/>}
                     </div>
                 </div>
             </div>
@@ -1622,6 +1636,188 @@
                     </div>
                 </div>}
             </>
+        );
+    }
+
+    function OnboardingTab({API,notify}){
+        const[profiles,setProfiles]=useState([]);
+        const[selected,setSelected]=useState(null);
+        const[step,setStep]=useState("select");
+        const[setupResult,setSetupResult]=useState(null);
+        useEffect(()=>{fetch(`${API}/onboarding/profiles`).then(r=>r.ok?r.json():null).then(d=>{if(d)setProfiles(d.profiles||[])}).catch(()=>{})},[API]);
+        const doSetup=async(profile)=>{
+            setSelected(profile);setStep("configuring");
+            try{const r=await fetch(`${API}/onboarding/setup`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({profile_id:profile.id,test_mode:true})});if(r.ok){const d=await r.json();setSetupResult(d);setStep("done");notify("Onboarding complete!")}else notify("Setup failed")}catch(e){notify("Setup failed")}
+        };
+        return(<>
+            <div className="tab-head" style={{flexDirection:"row",justifyContent:"space-between",alignItems:"center"}}><div><h1>Merchant Onboarding</h1><p style={{fontSize:11,color:"var(--dim)",marginTop:3}}>Pick your business profile → see projected recovery → start recovering in 60 seconds.</p></div></div>
+            {step==="select"&&<div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:12}}>
+                {profiles.map(p=>(<div key={p.id} className="card card-body" style={{cursor:"pointer",transition:"border-color .2s",border:selected?.id===p.id?"2px solid var(--paytm-blue)":"2px solid transparent"}} onClick={()=>doSetup(p)}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}><span style={{fontSize:24}}>{p.icon}</span><div><div style={{fontSize:13,fontWeight:700}}>{p.label}</div><div style={{fontSize:10,color:"var(--dim)"}}>{p.desc}</div></div></div>
+                    <div style={{fontSize:10,color:"var(--sec)",marginBottom:8}}><div>Amount range: {p.typical_amount_range}</div><div>Focus: {p.recovery_focus}</div></div>
+                    <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:6}}>{(p.recommended_channels||[]).map(ch=><span key={ch} className="tag" style={{textTransform:"capitalize"}}>{ch}</span>)}</div>
+                    <div className="tag-green tag">Est. lift: {p.estimated_lift_pp}</div>
+                </div>))}
+            </div>}
+            {step==="configuring"&&<div style={{textAlign:"center",padding:60}}><div className="spinner"></div><div style={{fontSize:11,color:"var(--dim)",marginTop:8}}>Configuring {selected?.label}…</div></div>}
+            {step==="done"&&setupResult&&<div className="card" style={{maxWidth:600}}>
+                <div className="card-header"><h2>✅ Setup Complete</h2><span className="tag-green tag">{setupResult.profile?.label}</span></div>
+                <div className="card-body">
+                    <div style={{marginBottom:12}}><div style={{fontSize:11,fontWeight:600,marginBottom:6}}>Configuration</div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,fontSize:10}}>
+                        <div><span className="form-label">Channels</span><div>{(setupResult.config?.channels_enabled||[]).join(", ")}</div></div>
+                        <div><span className="form-label">Max Attempts</span><div>{setupResult.config?.max_attempts}</div></div>
+                        <div><span className="form-label">Quiet Hours</span><div>{(setupResult.config?.quiet_hours||[]).join(":00 – ")}:00</div></div>
+                        <div><span className="form-label">Mode</span><div>{setupResult.config?.test_mode?"Test":"Live"}</div></div>
+                    </div></div>
+                    <div style={{marginBottom:12}}><div style={{fontSize:11,fontWeight:600,marginBottom:6}}>Projected Recovery</div>
+                        <div className="grid-3"><div className="sec-box"><div className="sec-label">Baseline</div><div className="sec-val">{setupResult.estimated_recovery?.baseline_rate}</div></div><div className="sec-box"><div className="sec-label">Projected</div><div className="sec-val" style={{color:"var(--grn)"}}>{setupResult.estimated_recovery?.projected_rate}</div></div><div className="sec-box"><div className="sec-label">Sample Size</div><div className="sec-val">{setupResult.estimated_recovery?.sample_size}</div></div></div>
+                    </div>
+                    <div><div style={{fontSize:11,fontWeight:600,marginBottom:6}}>Next Steps</div>{(setupResult.next_steps||[]).map((s,i)=><div key={i} style={{display:"flex",gap:6,alignItems:"flex-start",padding:"4px 0",fontSize:10,color:"var(--sec)"}}><span style={{color:"var(--grn)",fontWeight:700}}>{i+1}.</span>{s}</div>)}</div>
+                    <div style={{marginTop:12,display:"flex",gap:8}}><button className="btn" onClick={()=>setStep("select")} style={{fontSize:11}}>Choose Another Profile</button></div>
+                </div>
+            </div>}
+        </>);
+    }
+
+    function ReflectionTab({API,notify}){
+        const[reports,setReports]=useState([]);
+        const[latest,setLatest]=useState(null);
+        const[loading,setLoading]=useState(true);
+        const[running,setRunning]=useState(false);
+        const fetchReports=async()=>{try{const r=await fetch(`${API}/reflection/reports?limit=10`,{headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok)setReports((await r.json()).reports||[])}catch(e){}};
+        const fetchLatest=async()=>{try{const r=await fetch(`${API}/reflection/latest`,{headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok)setLatest((await r.json()).report)}catch(e){}};
+        const runReflection=async()=>{setRunning(true);try{const r=await fetch(`${API}/reflection/run`,{method:"POST",headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok){notify("Reflection completed");fetchReports();fetchLatest()}}catch(e){notify("Reflection failed")}setRunning(false)};
+        useEffect(()=>{fetchReports();fetchLatest()},[]);
+        const sevColor={critical:"var(--red)",warning:"var(--yel)",info:"var(--blu)"};
+        const catIcon={performance:"📈",compliance:"🛡",efficiency:"⚡",customer_experience:"👥"};
+        return(
+            <div className="agent-control-tab">
+                <div className="tab-head"><h1>🧠 Self-Reflection</h1><p>Agent self-assessment: performance, compliance, efficiency, and customer experience insights.</p></div>
+                <div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>Latest Reflection</h2></div>
+                    <div className="card-body">
+                        {latest?(<>
+                            <div className="grid-4" style={{gap:12,marginBottom:16}}>
+                                <div className="stat-box"><div className="stat-label">Total Insights</div><div className="stat-value">{latest.summary?.total_insights??0}</div></div>
+                                <div className="stat-box"><div className="stat-label">Critical</div><div className="stat-value" style={{color:"var(--red)"}}>{latest.summary?.critical_count??0}</div></div>
+                                <div className="stat-box"><div className="stat-label">Warnings</div><div className="stat-value" style={{color:"var(--yel)"}}>{latest.summary?.warning_count??0}</div></div>
+                                <div className="stat-box"><div className="stat-label">Generated</div><div className="stat-value">{latest.generated_at?new Date(latest.generated_at).toLocaleString():"—"}</div></div>
+                            </div>
+                            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>{Object.entries(latest.summary?.by_category||{}).map(([cat,count])=><span key={cat} className="tag" style={{background:"rgba(0,186,242,.15)",color:"var(--blu)"}}>{catIcon[cat]||"📌"} {cat}: {count}</span>)}</div>
+                        </>):<div className="muted" style={{textAlign:"center",padding:20}}>No reflection report yet</div>}
+                        <button className="btn btn-sm" onClick={runReflection} disabled={running} style={{marginTop:12}}>{running?"Running…":"▶ Run Reflection Now"}</button>
+                    </div>
+                </div>
+                {latest&&latest.insights&&latest.insights.length>0&&<div className="card" style={{marginBottom:16}}>
+                    <div className="card-header"><h2>Insights ({latest.insights.length})</h2></div>
+                    <div className="card-body">{latest.insights.map((insight,i)=><div key={i} className="card" style={{marginBottom:8,borderLeft:`4px solid ${sevColor[insight.severity]||"var(--dim)"}`}}>
+                        <div className="card-body"><div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontWeight:600}}>{catIcon[insight.category]||"📌"} {insight.title}</span><span className="pill" style={{background:sevColor[insight.severity]||"var(--dim)",color:"white",fontSize:10,textTransform:"uppercase"}}>{insight.severity}</span></div>
+                        <div style={{color:"var(--sec)",fontSize:12,marginBottom:8}}>{insight.description}</div>{insight.proposed_action&&<div style={{fontSize:11,color:"var(--blu)",fontStyle:"italic"}}>💡 {insight.proposed_action}</div>}</div>
+                    </div>)}</div>
+                </div>}
+                <div className="card"><div className="card-header"><h2>Reflection History ({reports.length})</h2></div><div className="card-body">
+                    {reports.length===0?<div className="muted" style={{textAlign:"center",padding:20}}>No reflection history</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",fontSize:11}}><thead><tr style={{borderBottom:"1px solid var(--bdr)"}}><th style={{textAlign:"left",padding:8}}>Report ID</th><th style={{textAlign:"left",padding:8}}>Generated</th><th style={{textAlign:"left",padding:8}}>Insights</th><th style={{textAlign:"left",padding:8}}>Critical</th><th style={{textAlign:"left",padding:8}}>Warnings</th></tr></thead>
+                    <tbody>{reports.map((r,i)=><tr key={i} style={{borderBottom:"1px solid var(--bdr)"}}><td style={{padding:8,fontFamily:"var(--mono)",fontSize:9}}>{r.report_id}</td><td style={{padding:8,fontSize:10}}>{r.generated_at?new Date(r.generated_at).toLocaleString():"—"}</td><td style={{padding:8}}>{r.summary?.total_insights??0}</td><td style={{padding:8,color:"var(--red)"}}>{r.summary?.critical_count??0}</td><td style={{padding:8,color:"var(--yel)"}}>{r.summary?.warning_count??0}</td></tr>)}</tbody></table></div>}
+                </div></div>
+            </div>
+        );
+    }
+
+    function LearningTab({API,notify}){
+        const[patterns,setPatterns]=useState([]);
+        const[summary,setSummary]=useState(null);
+        const[discovering,setDiscovering]=useState(false);
+        const[validating,setValidating]=useState(false);
+        const fetchPatterns=async()=>{try{const r=await fetch(`${API}/learning/patterns`,{headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok){const data=await r.json();setSummary(data.summary);setPatterns(data.patterns||[])}}catch(e){}};
+        const discoverPatterns=async()=>{setDiscovering(true);try{const r=await fetch(`${API}/learning/discover`,{method:"POST",headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok){notify("Discovered "+(await r.json()).discovered+" patterns");fetchPatterns()}}catch(e){notify("Discovery failed")}setDiscovering(false)};
+        const validatePatterns=async()=>{setValidating(true);try{const r=await fetch(`${API}/learning/validate`,{method:"POST",headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok){notify("Validated");fetchPatterns()}}catch(e){notify("Validation failed")}setValidating(false)};
+        useEffect(()=>{fetchPatterns()},[]);
+        const typeIcon={timing:"⏰",channel:"📱",amount:"💰",promise:"🤝",escalation:"🚨"};
+        const typeColor={timing:"var(--blu)",channel:"var(--grn)",amount:"var(--pur)",promise:"var(--yel)",escalation:"var(--red)"};
+        return(
+            <div className="agent-control-tab">
+                <div className="tab-head"><h1>📚 Persistent Learning</h1><p>Cross-session pattern discovery: timing, channels, amounts, promises, and escalation patterns.</p></div>
+                <div className="card" style={{marginBottom:16}}><div className="card-header"><h2>Pattern Summary</h2></div><div className="card-body">
+                    {summary?<div className="grid-4" style={{gap:12}}>
+                        <div className="stat-box"><div className="stat-label">Total Patterns</div><div className="stat-value">{summary.total_patterns??0}</div></div>
+                        <div className="stat-box"><div className="stat-label">High Confidence</div><div className="stat-value" style={{color:"var(--grn)"}}>{summary.high_confidence??0}</div></div>
+                        <div className="stat-box"><div className="stat-label">Recently Validated</div><div className="stat-value">{summary.recently_validated??0}</div></div>
+                        <div className="stat-box"><div className="stat-label">By Type</div><div className="stat-value" style={{fontSize:12}}>{Object.entries(summary.by_type||{}).map(([t,c])=>`${t}:${c}`).join(", ")||"—"}</div></div>
+                    </div>:<div className="muted" style={{textAlign:"center",padding:20}}>Loading...</div>}
+                    <div style={{display:"flex",gap:8,marginTop:12,flexWrap:"wrap"}}>
+                        <button className="btn btn-sm" onClick={discoverPatterns} disabled={discovering}>{discovering?"Discovering…":"🔍 Discover Patterns"}</button>
+                        <button className="btn btn-sm btn-outline" onClick={validatePatterns} disabled={validating}>{validating?"Validating…":"✅ Validate Patterns"}</button>
+                    </div>
+                </div></div>
+                {patterns.length>0&&<div className="card"><div className="card-header"><h2>Discovered Patterns ({patterns.length})</h2></div><div className="card-body"><div style={{overflowX:"auto"}}><table style={{width:"100%",fontSize:10}}><thead><tr style={{borderBottom:"1px solid var(--bdr)"}}>
+                    <th style={{textAlign:"left",padding:8}}>Type</th><th style={{textAlign:"left",padding:8}}>Context</th><th style={{textAlign:"left",padding:8}}>Action</th><th style={{textAlign:"left",padding:8}}>Success Rate</th><th style={{textAlign:"left",padding:8}}>Confidence</th><th style={{textAlign:"left",padding:8}}>Applications</th>
+                </tr></thead><tbody>{patterns.map((p,i)=><tr key={i} style={{borderBottom:"1px solid var(--bdr)"}}>
+                    <td style={{padding:8,color:typeColor[p.pattern_type]||"var(--dim)",fontWeight:600}}>{typeIcon[p.pattern_type]||"📌"} {p.pattern_type}</td>
+                    <td style={{padding:8,fontFamily:"var(--mono)",fontSize:9,maxWidth:150,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{JSON.stringify(p.context)}</td>
+                    <td style={{padding:8,fontSize:10}}>{p.action}</td>
+                    <td style={{padding:8}}>{(p.success_rate*100).toFixed(1)}%</td>
+                    <td style={{padding:8,color:p.confidence>=0.8?"var(--grn)":p.confidence>=0.6?"var(--yel)":"var(--dim)"}}>{(p.confidence*100).toFixed(0)}%</td>
+                    <td style={{padding:8}}>{p.applications}</td>
+                </tr>)}</tbody></table></div></div></div>}
+            </div>
+        );
+    }
+
+    function AgentControlTab({API,notify}){
+        const[status,setStatus]=useState(null);
+        const[banditStats,setBanditStats]=useState(null);
+        const[running,setRunning]=useState(false);
+        const[selectedCase,setSelectedCase]=useState("");
+        const[instruction,setInstruction]=useState("");
+        const[humanQueue,setHumanQueue]=useState([]);
+        const fetchStatus=async()=>{try{const r=await fetch(`${API}/agent/status`,{headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok)setStatus(await r.json())}catch(e){}};
+        const fetchBanditStats=async()=>{try{const r=await fetch(`${API}/agent/bandit-stats`,{headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok)setBanditStats(await r.json())}catch(e){}};
+        const fetchHumanQueue=async()=>{try{const r=await fetch(`${API}/human-action/queue`,{headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok)setHumanQueue((await r.json()).queue||[])}catch(e){}};
+        useEffect(()=>{fetchStatus();fetchBanditStats();fetchHumanQueue();const id=setInterval(()=>{fetchStatus();fetchHumanQueue()},10000);return()=>clearInterval(id)},[]);
+        const runTick=async()=>{setRunning(true);try{const r=await fetch(`${API}/agent/tick`,{method:"POST",headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok){notify("Tick executed: "+(await r.json()).executed+" steps");fetchStatus()}}catch(e){notify("Tick failed")}setRunning(false)};
+        const runCase=async()=>{if(!selectedCase)return;setRunning(true);try{const r=await fetch(`${API}/agent/run-case/${selectedCase}`,{method:"POST",headers:{"X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""}});if(r.ok){notify("Case step executed");fetchStatus()}}catch(e){notify("Failed")}setRunning(false)};
+        const injectInstruction=async()=>{if(!selectedCase||!instruction)return;try{await fetch(`${API}/agent/inject-instruction/${selectedCase}`,{method:"POST",headers:{"Content-Type":"application/json","X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""},body:JSON.stringify({instruction})});notify("Instruction injected");setInstruction("")}catch(e){notify("Failed")}};
+        const completeHumanAction=async(reqId,action)=>{try{await fetch(`${API}/human-action/${reqId}/complete`,{method:"POST",headers:{"Content-Type":"application/json","X-Agent-Token":localStorage.getItem("AGENT_API_TOKEN")||""},body:JSON.stringify({action_taken:action,outcome:"completed"})});notify("Human action completed");fetchHumanQueue();fetchStatus()}catch(e){notify("Failed")}};
+        return(
+            <div className="agent-control-tab">
+                <div className="tab-head"><h1>🤖 Teammate Control Panel</h1><p>Direct control over the recovery agent — run ticks, inspect state, inject instructions.</p></div>
+                <div className="card" style={{marginBottom:16}}><div className="card-header"><h2>Agent Status</h2></div><div className="card-body">
+                    <div className="grid-4" style={{gap:12}}>
+                        <div className="stat-box"><div className="stat-label">Active Cases</div><div className="stat-value">{status?.active_cases??"—"}</div></div>
+                        <div className="stat-box"><div className="stat-label">Paused Cases</div><div className="stat-value">{status?.paused_cases??"—"}</div></div>
+                        <div className="stat-box"><div className="stat-label">Pending Human</div><div className="stat-value">{status?.pending_human_actions??"—"}</div></div>
+                        <div className="stat-box"><div className="stat-label">Bandit Contexts</div><div className="stat-value">{status?.bandit_contexts??"—"}</div></div>
+                    </div>
+                    <button className="btn btn-sm" onClick={runTick} disabled={running} style={{marginTop:12}}>{running?"Running…":"▶ Run One Tick"}</button>
+                </div></div>
+                <div className="grid-2" style={{marginBottom:16}}>
+                    <div className="card"><div className="card-header"><h2>Run Single Case</h2></div><div className="card-body">
+                        <div style={{display:"flex",gap:8,marginBottom:10}}><input className="form-input" placeholder="case_id" value={selectedCase} onChange={e=>setSelectedCase(e.target.value)} style={{flex:1}}/><button className="btn btn-sm" onClick={runCase} disabled={running||!selectedCase}>Run Next Step</button></div>
+                    </div></div>
+                    <div className="card"><div className="card-header"><h2>Inject Instruction</h2></div><div className="card-body">
+                        <div style={{display:"flex",gap:8,marginBottom:10}}><input className="form-input" placeholder="case_id" value={selectedCase} onChange={e=>setSelectedCase(e.target.value)} style={{flex:1}}/></div>
+                        <textarea className="form-input" rows={3} placeholder="e.g., Call customer before next retry. Skip voice, use WhatsApp only." value={instruction} onChange={e=>setInstruction(e.target.value)} style={{marginBottom:8}}/>
+                        <button className="btn btn-sm" onClick={injectInstruction} disabled={!selectedCase||!instruction}>Inject</button>
+                    </div></div>
+                </div>
+                <div className="card" style={{marginBottom:16}}><div className="card-header"><h2>Human Action Queue ({humanQueue.length})</h2></div><div className="card-body">
+                    {humanQueue.length===0?<div className="muted" style={{textAlign:"center",padding:20}}>No pending human actions</div>:<div style={{overflowX:"auto"}}><table style={{width:"100%",fontSize:11}}><thead><tr style={{borderBottom:"1px solid var(--bdr)"}}>
+                        <th style={{textAlign:"left",padding:8}}>Request ID</th><th style={{textAlign:"left",padding:8}}>Case ID</th><th style={{textAlign:"left",padding:8}}>Reason</th><th style={{textAlign:"left",padding:8}}>Deadline</th><th style={{textAlign:"left",padding:8}}>Actions</th>
+                    </tr></thead><tbody>{humanQueue.map((req,i)=><tr key={i} style={{borderBottom:"1px solid var(--bdr)"}}>
+                        <td style={{padding:8,fontFamily:"var(--mono)",fontSize:10}}>{req.request_id}</td><td style={{padding:8,fontFamily:"var(--mono)",fontSize:10}}>{req.case_id}</td><td style={{padding:8}}>{req.reason}</td>
+                        <td style={{padding:8,fontSize:10,color:"var(--dim)"}}>{req.deadline?new Date(req.deadline).toLocaleString():"—"}</td>
+                        <td style={{padding:8,display:"flex",gap:4}}><button className="btn btn-xs btn-outline" onClick={()=>completeHumanAction(req.request_id,"approve")}>Approve</button><button className="btn btn-xs btn-outline" onClick={()=>completeHumanAction(req.request_id,"call_customer")}>Call</button><button className="btn btn-xs btn-outline" onClick={()=>completeHumanAction(req.request_id,"write_off")}>Write Off</button></td>
+                    </tr>)}</tbody></table></div>}
+                </div></div>
+                <div className="card"><div className="card-header"><h2>Merchant Bandit State ({banditStats?Object.keys(banditStats).length:0} contexts)</h2></div><div className="card-body">
+                    {banditStats&&Object.keys(banditStats).length>0?<div style={{overflowX:"auto"}}><table style={{width:"100%",fontSize:10}}><thead><tr style={{borderBottom:"1px solid var(--bdr)"}}>
+                        <th style={{textAlign:"left",padding:6}}>Merchant:Failure</th><th style={{textAlign:"left",padding:6}}>Total Pulls</th><th style={{textAlign:"left",padding:6}}>WhatsApp</th><th style={{textAlign:"left",padding:6}}>SMS</th><th style={{textAlign:"left",padding:6}}>Email</th><th style={{textAlign:"left",padding:6}}>Voice</th><th style={{textAlign:"left",padding:6}}>Retry</th>
+                    </tr></thead><tbody>{Object.entries(banditStats).map(([ctx,data])=><tr key={ctx} style={{borderBottom:"1px solid var(--bdr)"}}>
+                        <td style={{padding:6,fontFamily:"var(--mono)",fontSize:9}}>{ctx}</td><td style={{padding:6}}>{data.total_pulls}</td>
+                        {["whatsapp","sms","email","voice","retry"].map(ch=><td key={ch} style={{padding:6,color:data.arms?.[ch]?.mean_reward>0.5?"var(--grn)":"var(--dim)"}}>{data.arms?.[ch]?`${data.arms[ch].pulls} (${(data.arms[ch].mean_reward*100).toFixed(0)}%)`:"—"}</td>)}
+                    </tr>)}</tbody></table></div>:<div className="muted" style={{textAlign:"center",padding:20}}>No bandit data yet — run some cases first</div>}
+                </div></div>
+            </div>
         );
     }
 
