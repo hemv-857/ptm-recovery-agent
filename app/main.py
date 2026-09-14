@@ -85,7 +85,7 @@ app = FastAPI(
 import threading, time as _time, urllib.request, urllib.error
 
 def _self_ping():
-    _time.sleep(30)  # wait for app to be fully ready
+    _time.sleep(120)  # wait for uvicorn to be fully ready
     port = int(os.getenv("PORT", "8000"))
     url = f"http://127.0.0.1:{port}/report/baseline"
     while True:
