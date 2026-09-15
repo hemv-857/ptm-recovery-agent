@@ -99,8 +99,39 @@ def _self_ping():
             print(f"[keep-alive] ping FAIL {e}", flush=True)
         _time.sleep(300)
 
+def _auto_seed():
+    """Auto-seed demo data on startup if database is empty."""
+    _time.sleep(10)  # wait for app to be ready
+    try:
+        cfg = _cfg()
+        store = _store()
+        cases = store.all_cases()
+        if len(cases) >= 50:
+            print(f"[auto-seed] already seeded ({len(cases)} cases)", flush=True)
+            return
+        print("[auto-seed] database empty, seeding demo data...", flush=True)
+        import os as _os
+
+        _os.environ["PAYMENT_PROCESSOR"] = "mock"
+        import app.executor as ex
+        import app.payment_processor as pp
+
+        from .payment_processor import get_processor
+
+        pp.client = get_processor()
+        ex.client = get_processor()
+        from simulate.batch_generator import generate_batch
+        from simulate.engine import run as engine_run
+        t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
+        payments = generate_batch(200, t_start, seed=42)
+        engine_run(payments, cfg, store)
+        print("[auto-seed] seeded 200 cases", flush=True)
+    except Exception as e:
+        print(f"[auto-seed] failed: {e}", flush=True)
+
 if "pytest" not in sys.modules and not any("test" in arg for arg in sys.argv):
     threading.Thread(target=_self_ping, daemon=True).start()
+    threading.Thread(target=_auto_seed, daemon=True).start()
 
 _STATIC = Path(__file__).parent / "static"
 if _STATIC.is_dir():
