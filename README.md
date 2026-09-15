@@ -208,6 +208,28 @@ end with people. Measured: INVOICE_OVERDUE **73.2% vs 16.7% (+56.5 pp)** across
 parameters are stated assumptions in `config.yaml`, which is exactly why the
 control group exists.)
 
+## Live Deployment
+
+The agent is deployed and running:
+
+| Component | URL | Stack |
+|---|---|---|
+| **Frontend (Dashboard)** | https://ptm-recovery-agent-ten.vercel.app | Vercel (static React + vendored deps) |
+| **Backend (API + Scheduler)** | https://paytm-recovery-agent.onrender.com | Render (Docker, Python 3.13, uvicorn) |
+
+**Frontend features:** 10 tabs (Hub, Ledger, Engine, Analytics, Tools, Security, Agent Control, Reflection, Learning, Onboarding), dark/light theme toggle (☀️/🌙), cold-start banner, WebSocket live replay.
+
+**Backend features:** Self-ping thread (keeps free tier alive), `/demo/full-batch` endpoint for RCT simulation, Paytm webhook ingestion, inbound reply parser, scheduler tick, incremental-lift reporting, audit trail, compliance gate.
+
+**Quick demo on live backend:**
+```bash
+# Seed 200 cases and run full RCT simulation
+curl -X POST "https://paytm-recovery-agent.onrender.com/demo/full-batch?n=200&seed=42"
+
+# View baseline report (incremental lift, costs, promises, policy blocks)
+curl "https://paytm-recovery-agent.onrender.com/report/baseline"
+```
+
 ## Run it
 
 ```bash
