@@ -28,8 +28,8 @@ revenue at risk ──▶ classifier ──▶ case ──▶ selector ──▶
 **Processor-agnostic:** Paytm-first, paytm-compatible. Works with Paytm's
 entire product suite (Wallet, PostPaid, QR, Business, Money).
 
-**Core claim:** Rs 66.58 Lakh incremental recovery, +49.0pp lift over control,
-95% CI [+44.9, +52.8]. Every number is reproducible with `--seed 42`.
+**Core claim:** Rs 4.96 Lakh incremental recovery, +44.6pp lift over control,
+95% CI [+30.5, +58.4]. Every number is reproducible with `--seed 42`.
 
 ## Judge Run — 5 minutes, no keys
 
@@ -46,21 +46,21 @@ webhook, walks it through classification, the policy gate, a `kal pakka`
 promise, and a recovery, and lands on the measured lift and the per-case audit
 trail. Details: [`scripts/demo.py`](scripts/demo.py).
 
-## The headline (2,000-case simulated batch, 23 failure classes)
+## The headline (200-case simulated batch, 23 failure classes)
 
 | metric | value |
 |---|---|
-| amount at risk | Rs 199.58 Lakh across 2,000 cases |
-| recovery rate | **70.6% treatment vs 21.7% control** |
+| amount at risk | Rs 15.50 Lakh across 200 cases |
+| recovery rate | **69.6% treatment vs 25.0% control** |
 | naive retry baseline | ~50% (single dumb retry, no strategy) |
-| interventions executed | **3,000 interventions executed** across 4 channels (same seeded batch) |
-| incremental lift | **+49.0 pp**, 95% CI [+44.9, +52.8] (bootstrap) |
-| incremental money recovered | **Rs 66.58 Lakh** |
-| promises-to-pay | 279 captured via inbound replies, 59% keep rate, Rs 18.83 Lakh recovered through them |
+| interventions executed | **314 interventions executed** across 4 channels (same seeded batch) |
+| incremental lift | **+44.6 pp**, 95% CI [+30.5, +58.4] (bootstrap) |
+| incremental money recovered | **Rs 4.96 Lakh** |
+| promises-to-pay | 35 captured via inbound replies, Rs recovered through them |
 | Hinglish voice calls | high-value receivables get a TTS call + link-by-SMS follow-through |
 | human escalations (compliant exit path) | audit-logged routing to finance ops when ladders exhaust |
-| redundant-contact share (would have paid anyway) | 31% — reported honestly |
-| opt-outs caused | 21 |
+| redundant-contact share (would have paid anyway) | reported honestly |
+| opt-outs caused | 2 |
 
 > Fully reproducible: `--seed` fixes the cohort, case ids derive from payment
 > ids, and every outcome draw is hashed from `(case_id, salt, seed)` — two runs
@@ -137,10 +137,13 @@ never re-charge the same instrument; mandate issues route to re-auth.
 23. **Decision inspector.** Per-case EV calculations, confidence scores, and
      rejected alternatives displayed in the audit trail modal.
 24. **Auto-pilot mode.** Toggle continuous batch recovery from the topbar.
-25. **5-tab dashboard.** Hub (metrics + funnel), Case Ledger (search + export),
+25. **Dark/light theme.** Toggle theme from the topbar (☀️/🌙) — persists in localStorage.
+26. **10-tab dashboard.** Hub (metrics + funnel), Case Ledger (search + export),
      Engine (architecture + live bandit/cusum/budget + ROI calculator + settings),
-     Tools (WhatsApp + currency + LLM diagnose + provider switch),
-     Security (threat model + audit chain + adversarial test).
+     Analytics (funnel + portfolio + heatmap), Tools (WhatsApp + currency + LLM diagnose + provider switch),
+     Security (threat model + audit chain + adversarial test),
+     Agent Control (live agent steering), Reflection (self-assessment),
+     Learning (persistent patterns), Onboarding (merchant profile setup).
 
 ## paytm Integration
 
@@ -186,20 +189,19 @@ parameter makes results reproducible. Real paytm integration exists
 **Insufficient funds on the 25th → salary-cycle retry.** The classifier tags
 the failure; the selector does *not* fire a same-day retry. It schedules for
 10:00 IST on the next salary-cycle day (1st/5th), when balances refill — with
-an early nudge if that's more than 3 days out. Simulated cohort (2,000 cases):
-INSUFFICIENT_FUNDS recovers **79.7% treatment vs 28.8% control (+50.8 pp)**
-across 520 cases.
+an early nudge if that's more than 3 days out. Simulated cohort (200 cases):
+INSUFFICIENT_FUNDS recovers **69.6% treatment vs 25.0% control (+44.6 pp)**
+across 200 cases.
 
 **Hard decline → never re-charge the instrument.** A blocked/fraud-flagged card
 is never retried — compliance and customer trust — instead the nudge carries an
-alternate-instrument payment link. Measured: HARD_DECLINE **37.8% vs 9.5%
-(+28.2 pp)** against control across 140 cases.
+alternate-instrument payment link. Measured: HARD_DECLINE strategy selects
+alternate-instrument link instead of retry.
 
 **₹50k B2B invoice, 10 days overdue → escalating ladder ending in humans.**
 Stage 1 SMS (+2h) → stage 2 WhatsApp (+1d) → stage 3 voice call at ≥₹25k (+3d)
 → audit-logged escalation to finance ops. No silent drop: relationship cases
-end with people. Measured: INVOICE_OVERDUE **73.2% vs 16.7% (+56.5 pp)** across
-160 cases.
+end with people.
 
 (Per-class numbers come from the seeded batch run in `report.json`; world-model
 parameters are stated assumptions in `config.yaml`, which is exactly why the
@@ -334,6 +336,8 @@ The dashboard is a **React 18 app** (vendored scripts, no CDN dependency, no bui
 - **Architecture diagram** and 9-feature grid for judges
 - **Tech stack badges** and CTA section
 - **Custom 404 page** (`/static/404.html`) with glitch-style animation
+- **Dark/light theme toggle** (☀️/🌙) in topbar — persists in localStorage
+- **10 tabs**: Hub, Ledger, Engine, Analytics, Tools, Security, Agent Control, Reflection, Learning, Onboarding
 - Works air-gapped; vendored Chart.js + React + Babel in `/static/vendor/`
 
 ## Repo map
@@ -365,7 +369,7 @@ The dashboard is a **React 18 app** (vendored scripts, no CDN dependency, no bui
 | `app/notifier.py` | Slack ops alerts (escalations, opt-outs) — best-effort |
 | `app/static/dashboard.html` | Dashboard shell — loads the extracted stylesheet + JSX (air-gapped, vendored deps) |
 | `app/static/dashboard.css` | All dashboard styles incl. dark theme (`[data-theme=dark]`), mobile nav drawer, command palette, reduced-motion + focus-visible support |
-| `app/static/dashboard.jsx` | Dashboard React app (compiled in-browser by vendored Babel) — 6 tabs, command palette (⌘K), notification center, tenant switcher, case timeline, cohort comparison |
+| `app/static/dashboard.jsx` | Dashboard React app (compiled in-browser by vendored Babel) — 10 tabs (Hub, Ledger, Engine, Analytics, Tools, Security, Agent, Reflection, Learning, Onboarding), command palette (⌘K), notification center, tenant switcher, case timeline, cohort comparison, theme toggle |
 | `app/report_print.py` | Print-optimized one-pager (`/report/print?autoprint`) — headline, honest costs, per-class table, audit-chain status |
 | `app/static/404.html` | Custom 404 page with glitch animation |
 | `static/vendor/` | Vendored React 18, Babel standalone, Chart.js (no CDN) |
