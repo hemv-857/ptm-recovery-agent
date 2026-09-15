@@ -28,8 +28,8 @@ revenue at risk ──▶ classifier ──▶ case ──▶ selector ──▶
 **Processor-agnostic:** Paytm-first, paytm-compatible. Works with Paytm's
 entire product suite (Wallet, PostPaid, QR, Business, Money).
 
-**Core claim:** Rs 4.96 Lakh incremental recovery, +44.6pp lift over control,
-95% CI [+30.5, +58.4]. Every number is reproducible with `--seed 42`.
+**Core claim:** Rs 66.58 Lakh incremental recovery, +49.0pp lift over control,
+95% CI [+44.9, +52.8]. Every number is reproducible with `--seed 42`.
 
 ## Judge Run — 5 minutes, no keys
 
@@ -46,21 +46,21 @@ webhook, walks it through classification, the policy gate, a `kal pakka`
 promise, and a recovery, and lands on the measured lift and the per-case audit
 trail. Details: [`scripts/demo.py`](scripts/demo.py).
 
-## The headline (200-case simulated batch, 23 failure classes)
+## The headline (2,000-case simulated batch, 23 failure classes)
 
 | metric | value |
 |---|---|
-| amount at risk | Rs 15.50 Lakh across 200 cases |
-| recovery rate | **69.6% treatment vs 25.0% control** |
+| amount at risk | Rs 199.58 Lakh across 2,000 cases |
+| recovery rate | **70.6% treatment vs 21.7% control** |
 | naive retry baseline | ~50% (single dumb retry, no strategy) |
-| interventions executed | **314 interventions executed** across 4 channels (same seeded batch) |
-| incremental lift | **+44.6 pp**, 95% CI [+30.5, +58.4] (bootstrap) |
-| incremental money recovered | **Rs 4.96 Lakh** |
-| promises-to-pay | 35 captured via inbound replies, Rs recovered through them |
+| interventions executed | **3,000 interventions executed** across 4 channels (same seeded batch) |
+| incremental lift | **+49.0 pp**, 95% CI [+44.9, +52.8] (bootstrap) |
+| incremental money recovered | **Rs 66.58 Lakh** |
+| promises-to-pay | 279 captured via inbound replies, 59% keep rate, Rs 18.83 Lakh recovered through them |
 | Hinglish voice calls | high-value receivables get a TTS call + link-by-SMS follow-through |
 | human escalations (compliant exit path) | audit-logged routing to finance ops when ladders exhaust |
-| redundant-contact share (would have paid anyway) | reported honestly |
-| opt-outs caused | 2 |
+| redundant-contact share (would have paid anyway) | 31% — reported honestly |
+| opt-outs caused | 21 |
 
 > Fully reproducible: `--seed` fixes the cohort, case ids derive from payment
 > ids, and every outcome draw is hashed from `(case_id, salt, seed)` — two runs
@@ -189,19 +189,20 @@ parameter makes results reproducible. Real paytm integration exists
 **Insufficient funds on the 25th → salary-cycle retry.** The classifier tags
 the failure; the selector does *not* fire a same-day retry. It schedules for
 10:00 IST on the next salary-cycle day (1st/5th), when balances refill — with
-an early nudge if that's more than 3 days out. Simulated cohort (200 cases):
-INSUFFICIENT_FUNDS recovers **69.6% treatment vs 25.0% control (+44.6 pp)**
-across 200 cases.
+an early nudge if that's more than 3 days out. Simulated cohort (2,000 cases):
+INSUFFICIENT_FUNDS recovers **79.7% treatment vs 28.8% control (+50.8 pp)**
+across 520 cases.
 
 **Hard decline → never re-charge the instrument.** A blocked/fraud-flagged card
 is never retried — compliance and customer trust — instead the nudge carries an
-alternate-instrument payment link. Measured: HARD_DECLINE strategy selects
-alternate-instrument link instead of retry.
+alternate-instrument payment link. Measured: HARD_DECLINE **37.8% vs 9.5%
+(+28.2 pp)** against control across 140 cases.
 
 **₹50k B2B invoice, 10 days overdue → escalating ladder ending in humans.**
 Stage 1 SMS (+2h) → stage 2 WhatsApp (+1d) → stage 3 voice call at ≥₹25k (+3d)
 → audit-logged escalation to finance ops. No silent drop: relationship cases
-end with people.
+end with people. Measured: INVOICE_OVERDUE **73.2% vs 16.7% (+56.5 pp)** across
+160 cases.
 
 (Per-class numbers come from the seeded batch run in `report.json`; world-model
 parameters are stated assumptions in `config.yaml`, which is exactly why the

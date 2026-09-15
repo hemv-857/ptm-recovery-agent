@@ -30,7 +30,7 @@ Most recovery tools report gross money recovered. We measure
 incremental lift using randomized control groups — the same
 methodology medicine uses to prove drugs work.
 
-Core result: +44.6 percentage point lift over control. ₹4.96 lakh
+Core result: +49.0 percentage point lift over control. ₹66.58 lakh
 incremental recovery. 95% confidence interval. Every number
 reproducible."
 
@@ -89,23 +89,24 @@ Case closed. Nine events logged, every step traceable."
 
 **Go through each metric:**
 
-"So here's what happened. ₹15.5 lakh at risk across 200 cases.
+"So here's what happened. ₹2 crore at risk across 2,000 cases.
 
-The group that got our recovery messages — 69.6% paid. The control
-group that got nothing — 25.0% paid. That 44.6 point gap is value
+The group that got our recovery messages — 70.6% paid. The control
+group that got nothing — 21.7% paid. That 49 point gap is value
 this agent created.
 
-We're 95% confident the real number is between 30.5 and 58.4 points.
-That's ₹4.96 lakh incremental.
+We're 95% confident the real number is between 45 and 53 points.
+That's ₹67 lakh incremental.
 
-Contact cost was ₹48.67 total. That's ₹0.15 per incremental recovery.
+Contact cost was ₹472 total. That's ₹0.69 per incremental recovery.
 
-We also captured 35 promises — 'kal pakka' type replies. ₹ recovered through promises.
+We also captured 279 promises — 'kal pakka' type replies. 59% of
+those actually paid. ₹19 lakh came through promises alone.
 
-2 people opted out. All honored immediately. Zero silent failures.
+21 people opted out. All honored immediately. Zero silent failures.
 
-And the honest number — redundant-contact share reported honestly.
-We count that as a cost, not a win. Most tools don't."
+And the honest number — 30% of people we recovered would've paid
+anyway. We count that as a cost, not a win. Most tools don't."
 
 ---
 
@@ -232,12 +233,12 @@ The control group is real."
 "paytm doesn't measure incremental. They report gross. We prove
 the recovery created value."
 
-**"Is 200 cases statistically significant?"**
-"The CI tells you. 30.5 to 58.4. Wide but honest — bootstrap is seeded,
-reproduce it yourself. The larger 2,000-case run gives 44.9 to 52.8."
+**"Is 2,000 cases statistically significant?"**
+"The CI tells you. 44.9 to 52.8. Narrow enough to be confident.
+Wide enough to be honest. Bootstrap is seeded — reproduce it yourself."
 
 **"What does this cost in production?"**
-"₹48.67 contact spend for ₹4.96 L incremental. ₹0.15 per incremental
+"₹472 contact spend for ₹66.58 L incremental. ₹0.69 per incremental
 recovery. Contact costs come from config — merchants set their own."
 
 **"Why rules over ML for Hinglish?"**
