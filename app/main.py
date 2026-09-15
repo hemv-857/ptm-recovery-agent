@@ -119,20 +119,21 @@ def _update_live_state(store):
             _cusum.update(rate)
 
 
-def _auto_seed():
-    """Auto-seed demo data on startup if database is empty."""
-    _time.sleep(10)  # wait for app to be ready
-    try:
-        cfg = _cfg()
-        store = _store()
-        cases = store.all_cases()
-        if len(cases) >= 50:
-            print(f"[auto-seed] already seeded ({len(cases)} cases)", flush=True)
-            return
-        print("[auto-seed] database empty, seeding demo data...", flush=True)
-        import os as _os
+_seeded = False
 
-        _os.environ["PAYMENT_PROCESSOR"] = "mock"
+
+def _ensure_seeded():
+    """Seed demo data on first request if database is empty. Runs once per process."""
+    global _seeded
+    if _seeded or "pytest" in sys.modules:
+        return
+    store = _store()
+    if len(store.all_cases()) >= 50:
+        _seeded = True
+        return
+    try:
+        old_pp = os.environ.get("PAYMENT_PROCESSOR")
+        os.environ["PAYMENT_PROCESSOR"] = "mock"
         import app.executor as ex
         import app.payment_processor as pp
 
@@ -142,17 +143,23 @@ def _auto_seed():
         ex.client = get_processor()
         from simulate.batch_generator import generate_batch
         from simulate.engine import run as engine_run
+
+        print("[auto-seed] database empty, seeding demo data...", flush=True)
         t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
         payments = generate_batch(200, t_start, seed=42)
-        engine_run(payments, cfg, store)
+        engine_run(payments, _cfg(), store)
         _update_live_state(store)
+        _seeded = True
         print("[auto-seed] seeded 200 cases", flush=True)
+        if old_pp is None:
+            os.environ.pop("PAYMENT_PROCESSOR", None)
+        else:
+            os.environ["PAYMENT_PROCESSOR"] = old_pp
     except Exception as e:
         print(f"[auto-seed] failed: {e}", flush=True)
 
 if "pytest" not in sys.modules and not any("test" in arg for arg in sys.argv):
     threading.Thread(target=_self_ping, daemon=True).start()
-    threading.Thread(target=_auto_seed, daemon=True).start()
 
 _STATIC = Path(__file__).parent / "static"
 if _STATIC.is_dir():
@@ -810,6 +817,7 @@ def report_baseline() -> dict[str, Any]:
         except Exception:
             pass
     # Fallback: compute from current store
+    _ensure_seeded()
     store = _store()
     return build_report(store.all_cases(), store.actions_rows(), _cfg())
 
@@ -3114,6 +3122,7 @@ def dashboard_summary(limit: int = 50) -> dict[str, Any]:
     {"error": ...} rather than 500ing the whole dashboard. `limit` bounds the
     embedded recent-cases list (1..100).
     """
+    _ensure_seeded()
     limit = max(1, min(limit, 100))
 
     def _soft(fn, *args, **kwargs):
