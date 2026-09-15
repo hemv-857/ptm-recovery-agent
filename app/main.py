@@ -99,6 +99,26 @@ def _self_ping():
             print(f"[keep-alive] ping FAIL {e}", flush=True)
         _time.sleep(300)
 
+def _update_live_state(store):
+    """Feed simulation results into the live dashboard state (bandit, budget, CUSUM)."""
+    actions = store.actions_rows()
+    for a in actions:
+        if a.get("status") == "executed":
+            atype = a.get("action_type", "")
+            ch = _channel_from_action(atype)
+            recovered = float(a.get("recovered_amount", 0) or 0) > 0
+            _bandit.update(ch, 1.0 if recovered else 0.0)
+            get_budget().spend(ch)
+    cases_list = store.all_cases()
+    if cases_list:
+        batch_size = 50
+        for i in range(0, len(cases_list), batch_size):
+            batch = cases_list[i:i + batch_size]
+            recovered = sum(1 for c in batch if c.status.value == "recovered")
+            rate = recovered / len(batch) if batch else 0
+            _cusum.update(rate)
+
+
 def _auto_seed():
     """Auto-seed demo data on startup if database is empty."""
     _time.sleep(10)  # wait for app to be ready
@@ -125,6 +145,7 @@ def _auto_seed():
         t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
         payments = generate_batch(200, t_start, seed=42)
         engine_run(payments, cfg, store)
+        _update_live_state(store)
         print("[auto-seed] seeded 200 cases", flush=True)
     except Exception as e:
         print(f"[auto-seed] failed: {e}", flush=True)
@@ -1321,23 +1342,8 @@ async def batch_run_stream(
         run(payments, cfg, store)
         rep = build_report(store.all_cases(), store.actions_rows(), cfg)
 
-        # Update global bandit/cusum from simulation results
-        actions = store.actions_rows()
-        for a in actions:
-            if a.get("status") == "executed":
-                atype = a.get("action_type", "")
-                ch = _channel_from_action(atype)
-                recovered = float(a.get("recovered_amount", 0) or 0) > 0
-                _bandit.update(ch, 1.0 if recovered else 0.0)
-                get_budget().spend(ch)
-        cases_list = store.all_cases()
-        if cases_list:
-            batch_size = 50
-            for i in range(0, len(cases_list), batch_size):
-                batch = cases_list[i:i+batch_size]
-                recovered = sum(1 for c in batch if c.status.value == "recovered")
-                rate = recovered / len(batch) if batch else 0
-                _cusum.update(rate)
+        # Feed results into live dashboard state
+        _update_live_state(store)
 
         yield f"data: done {rep['headline']['incremental_recovery_pp']:.1f}pp lift\n\n"
 
@@ -3088,6 +3094,9 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
 
     # Run full simulation
     run(payments, cfg, store)
+
+    # Feed results into live dashboard state (bandit, budget, CUSUM)
+    _update_live_state(store)
 
     # Build final report
     rep = build_report(store.all_cases(), store.actions_rows(), cfg)
