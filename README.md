@@ -430,3 +430,12 @@ The dashboard is a **React 18 app** (vendored scripts, no CDN dependency, no bui
 - Optional LLM (any OpenAI-compatible endpoint) only polishes copy/classification;
   every path has a deterministic fallback and the system is fully functional
   without it.
+
+## Related Projects
+
+Sibling recovery agents with the same control-group lift methodology, different payment processors:
+
+| Repo | Processor |
+|------|-----------|
+| [rzp-recovery-agent](https://github.com/hemv-857/rzp-recovery-agent) | Razorpay |
+| [ptm-recovery-agent](https://github.com/hemv-857/ptm-recovery-agent) | Paytm |
