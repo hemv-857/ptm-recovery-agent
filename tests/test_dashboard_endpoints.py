@@ -2,7 +2,7 @@
 /analytics/portfolio, /analytics/heatmap, and the /report/print page."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -34,7 +34,7 @@ def _seed_case(tmp_path, amount: int, failure: FailureClass = FailureClass.INSUF
         source="simulated",
     )
     case = ingest_failure(fp, store, cfg)
-    plan_and_schedule(case, cfg, datetime.now(timezone.utc) + timedelta(hours=1), store)
+    plan_and_schedule(case, cfg, datetime.now(UTC) + timedelta(hours=1), store)
     return case
 
 

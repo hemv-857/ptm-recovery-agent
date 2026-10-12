@@ -32,7 +32,7 @@ import json
 import re
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,7 +46,7 @@ MATRIX = ROOT / "CLAIM_MATRIX.md"
 DECK_SNAPSHOT = ROOT / "report_deck_snapshot.txt"
 
 # Canonical batch anchor: must match scripts/run_batch.py exactly.
-T_START = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
+T_START = datetime(2026, 8, 20, 6, 0, tzinfo=UTC)
 
 
 def _load_report() -> dict:

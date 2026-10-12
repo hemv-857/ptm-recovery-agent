@@ -1,5 +1,5 @@
 """End-to-end smoke: small cohort through the full simulated agent loop."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -14,7 +14,7 @@ def test_end_to_end_small_batch(tmp_path):
     cfg["simulation"]["batch_size"] = 60
     cfg["simulation"]["horizon_days"] = 7
 
-    payments = generate_batch(60, datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc), seed=99)
+    payments = generate_batch(60, datetime(2026, 8, 20, 6, 0, tzinfo=UTC), seed=99)
     assert len(payments) == 60
 
     store = Store(tmp_path / "smoke.db")
@@ -66,7 +66,7 @@ def test_case_ids_stable_and_simulation_reproducible(tmp_path):
     def one_run(seed: int) -> list[tuple[str, int]]:
         cfg = yaml.safe_load(Path("config.yaml").read_text())
         payments = generate_batch(40, datetime(2026, 8, 20, 6, 0,
-                                               tzinfo=timezone.utc), seed=seed)
+                                               tzinfo=UTC), seed=seed)
         store = Store(tmp_path / f"det_{seed}.db")
         run(payments, cfg, store)
         out = sorted((c.case_id, c.recovered_amount) for c in store.all_cases())
@@ -82,7 +82,7 @@ def test_dashboard_links_cases_to_audit_trails(tmp_path):
 
     cfg = yaml.safe_load(Path("config.yaml").read_text())
     payments = generate_batch(20, datetime(2026, 8, 20, 6, 0,
-                                           tzinfo=timezone.utc), seed=7)
+                                           tzinfo=UTC), seed=7)
     store = Store(tmp_path / "dash.db")
     run(payments, cfg, store)
     cases = sorted(store.all_cases(), key=lambda c: c.created_at)[-10:][::-1]

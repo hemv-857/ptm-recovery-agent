@@ -1,7 +1,7 @@
 """Tests for SHAP explainability and recovery model."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.models import ActionType, Customer, FailureClass, RecoveryCase
 from app.recovery_model import RecoveryModel, RecoveryPrediction
@@ -25,7 +25,7 @@ def _make_case(
         loss_age_days=1,
         attempt_times=[],
         contact_times=[],
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
 
 
@@ -34,7 +34,7 @@ def test_rule_fallback_no_model():
     case = _make_case()
     pred = model.predict(
         case, ActionType.RETRY_CHARGE, 0,
-        datetime.now(timezone.utc).isoformat(), {},
+        datetime.now(UTC).isoformat(), {},
     )
     assert isinstance(pred, RecoveryPrediction)
     assert pred.confidence == "rule_fallback"
@@ -47,11 +47,11 @@ def test_rule_fallback_fatigue():
     case = _make_case(failure_class=FailureClass.NETWORK_TIMEOUT, method="upi")
     pred_low = model.predict(
         case, ActionType.NUDGE_SMS, 0,
-        datetime.now(timezone.utc).isoformat(), {},
+        datetime.now(UTC).isoformat(), {},
     )
     pred_high = model.predict(
         case, ActionType.NUDGE_SMS, 5,
-        datetime.now(timezone.utc).isoformat(), {},
+        datetime.now(UTC).isoformat(), {},
     )
     # More contacts = lower probability (fatigue)
     assert pred_high.probability <= pred_low.probability
@@ -62,7 +62,7 @@ def test_prediction_has_action_type():
     case = _make_case(failure_class=FailureClass.HARD_DECLINE)
     pred = model.predict(
         case, ActionType.NUDGE_VOICE, 0,
-        datetime.now(timezone.utc).isoformat(), {},
+        datetime.now(UTC).isoformat(), {},
     )
     assert pred.action_type == ActionType.NUDGE_VOICE
 

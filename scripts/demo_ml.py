@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -33,7 +33,7 @@ def main() -> None:
 
     # Generate and run batch
     print(f"[1/3] generating {args.n} synthetic cases ...")
-    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
+    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=UTC)
     payments = generate_batch(args.n, t_start, seed=args.seed)
     print(f"      {len(payments)} cases generated")
 
@@ -76,7 +76,7 @@ def main() -> None:
 
         sample = random.sample(cases_with_actions, min(5, len(cases_with_actions)))
         for case, action_type in sample:
-            pred = model.predict(case, action_type, 0, datetime.now(timezone.utc).isoformat(), cfg)
+            pred = model.predict(case, action_type, 0, datetime.now(UTC).isoformat(), cfg)
             print(f"\n  Case {case.case_id}: {case.failure_class.value} / ₹{case.amount/100:.0f}")
             print(f"  Action: {action_type.value}")
             print(f"  P(recovery): {pred.probability:.1%} [{pred.confidence}]")

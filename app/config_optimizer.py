@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import yaml
@@ -54,7 +54,7 @@ class ConfigOptimizer:
     def _generate_drift_proposals(self) -> list[ConfigProposal]:
         """Generate config proposals based on observed patterns."""
         proposals = []
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Load current config
         try:
@@ -164,7 +164,7 @@ class ConfigOptimizer:
                 return False
 
             changes = json.loads(row["config_changes"])
-            now = datetime.now(timezone.utc).isoformat()
+            now = datetime.now(UTC).isoformat()
 
             # Apply to config.yaml
             with open(self.cfg_path) as f:
@@ -204,7 +204,7 @@ class ConfigOptimizer:
     def reject_proposal(self, proposal_id: str, reviewer: str) -> bool:
         """Reject a proposal."""
         try:
-            now = datetime.now(timezone.utc).isoformat()
+            now = datetime.now(UTC).isoformat()
             self.store.conn.execute(
                 "UPDATE config_proposals SET status='rejected', reviewed_at=?, reviewed_by=? WHERE proposal_id=?",
                 (now, reviewer, proposal_id),

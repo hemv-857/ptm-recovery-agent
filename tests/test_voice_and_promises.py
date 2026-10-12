@@ -1,5 +1,5 @@
 """Voice channel + promise-to-pay flow tests."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import yaml
 
@@ -29,26 +29,26 @@ def _invoice_case(amount_paise: int, attempts: int = 0) -> RecoveryCase:
         class_confidence=0.95,
         loss_age_days=12,
         group=Group.TREATMENT,
-        attempt_times=[datetime.now(timezone.utc).isoformat()] * attempts,
+        attempt_times=[datetime.now(UTC).isoformat()] * attempts,
     )
 
 
 def test_high_value_invoice_final_notice_is_voice(tmp_path):
     case = _invoice_case(50_000_000, attempts=2)          # Rs 5L
-    act = select_next_action(case, CFG, datetime.now(timezone.utc))
+    act = select_next_action(case, CFG, datetime.now(UTC))
     assert act.action_type is ActionType.NUDGE_VOICE
 
 
 def test_low_value_invoice_stays_text(tmp_path):
     case = _invoice_case(100_000, attempts=2)             # Rs 1k
-    act = select_next_action(case, CFG, datetime.now(timezone.utc))
+    act = select_next_action(case, CFG, datetime.now(UTC))
     assert act.action_type in (ActionType.NUDGE_WHATSAPP, ActionType.NUDGE_SMS,
                                ActionType.NUDGE_EMAIL)
 
 
 def test_voice_execution_places_call_and_sms_followthrough(tmp_path):
     # 14:00 UTC = 19:30 IST — outside quiet hours [22, 8]
-    now = datetime(2026, 8, 15, 14, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 8, 15, 14, 0, tzinfo=UTC)
     store = Store(tmp_path / "v.db")
     case = _invoice_case(50_000_000, attempts=2)
     case.attempt_times = [
@@ -73,15 +73,15 @@ def test_check_promise_broken_resumes_without_counting_attempt(tmp_path):
     store.upsert_case(case)
     check = Intervention(
         case_id=case.case_id, action_type=ActionType.CHECK_PROMISE,
-        scheduled_at=datetime.now(timezone.utc).isoformat(),
+        scheduled_at=datetime.now(UTC).isoformat(),
         reasoning={"strategy": "promise_to_pay_followup"},
     )
     store.save_action(check)
     out, case2 = execute_action(check, case, CFG, store, ChannelAdapter(),
-                                datetime.now(timezone.utc))
+                                datetime.now(UTC))
     assert out.status.value == "executed"
     assert len(case2.attempt_times) == 1                  # internal action not counted
-    nxt = select_next_action(case2, CFG, datetime.now(timezone.utc))
+    nxt = select_next_action(case2, CFG, datetime.now(UTC))
     assert nxt is not None                                # ladder resumes
 
 

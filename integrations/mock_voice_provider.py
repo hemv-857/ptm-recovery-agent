@@ -12,7 +12,7 @@ follow-through SMS the agent would have sent.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import FastAPI
 
@@ -23,7 +23,7 @@ CALLS: list[dict] = []
 @app.post("/call")
 async def place_call(payload: dict) -> dict:
     entry = {
-        "received_at": datetime.now(timezone.utc).isoformat(),
+        "received_at": datetime.now(UTC).isoformat(),
         "to": payload.get("to"),
         "tts_script": payload.get("tts_script", ""),
         "sms_followthrough": payload.get("sms_followthrough", ""),

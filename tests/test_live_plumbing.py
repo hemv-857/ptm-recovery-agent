@@ -4,6 +4,7 @@ the real FastAPI receiver, idempotent recovery, API-error containment."""
 import hashlib
 import hmac
 import json
+from datetime import UTC
 
 import httpx
 import pytest
@@ -250,10 +251,10 @@ def test_paytm_api_error_blocks_action_without_crashing(tmp_path, monkeypatch):
 
 
 def datetime_now_iso():
-    from datetime import datetime, timezone
-    return datetime.now(timezone.utc).isoformat()
+    from datetime import datetime
+    return datetime.now(UTC).isoformat()
 
 
 def now_utc():
-    from datetime import datetime, timezone
-    return datetime.now(timezone.utc)
+    from datetime import datetime
+    return datetime.now(UTC)

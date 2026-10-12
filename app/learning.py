@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from .models import CaseStatus, RecoveryCase
@@ -177,7 +177,7 @@ class LearningEngine:
                 rate = stats["recovered"] / stats["total"]
                 if rate > 0.6:
                     pattern = LearningPattern(
-                        pattern_id=f"timing_{cls}_hour{hour}_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+                        pattern_id=f"timing_{cls}_hour{hour}_{datetime.now(UTC).strftime('%Y%m%d')}",
                         pattern_type="timing",
                         context={"failure_class": cls, "hour": hour},
                         action=f"schedule_at_hour_{hour}",
@@ -185,8 +185,8 @@ class LearningEngine:
                         success_rate=rate,
                         sample_size=stats["total"],
                         confidence=min(0.9, rate * (stats["total"] / 50)),
-                        discovered_at=datetime.now(timezone.utc).isoformat(),
-                        last_validated=datetime.now(timezone.utc).isoformat(),
+                        discovered_at=datetime.now(UTC).isoformat(),
+                        last_validated=datetime.now(UTC).isoformat(),
                     )
                     patterns.append(pattern)
 
@@ -227,7 +227,7 @@ class LearningEngine:
                 rate = stats["recovered"] / stats["total"]
                 if rate > 0.5:
                     pattern = LearningPattern(
-                        pattern_id=f"channel_{cls}_{channel}_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+                        pattern_id=f"channel_{cls}_{channel}_{datetime.now(UTC).strftime('%Y%m%d')}",
                         pattern_type="channel",
                         context={"failure_class": cls},
                         action=f"use_{channel}",
@@ -235,8 +235,8 @@ class LearningEngine:
                         success_rate=rate,
                         sample_size=stats["total"],
                         confidence=min(0.9, rate * (stats["total"] / 30)),
-                        discovered_at=datetime.now(timezone.utc).isoformat(),
-                        last_validated=datetime.now(timezone.utc).isoformat(),
+                        discovered_at=datetime.now(UTC).isoformat(),
+                        last_validated=datetime.now(UTC).isoformat(),
                     )
                     patterns.append(pattern)
 
@@ -278,7 +278,7 @@ class LearningEngine:
                 rate = stats["recovered"] / stats["total"]
                 if rate > 0.5:
                     pattern = LearningPattern(
-                        pattern_id=f"amount_{tier}_{action_type}_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+                        pattern_id=f"amount_{tier}_{action_type}_{datetime.now(UTC).strftime('%Y%m%d')}",
                         pattern_type="amount",
                         context={"amount_tier": tier},
                         action=action_type,
@@ -286,8 +286,8 @@ class LearningEngine:
                         success_rate=rate,
                         sample_size=stats["total"],
                         confidence=min(0.9, rate * (stats["total"] / 40)),
-                        discovered_at=datetime.now(timezone.utc).isoformat(),
-                        last_validated=datetime.now(timezone.utc).isoformat(),
+                        discovered_at=datetime.now(UTC).isoformat(),
+                        last_validated=datetime.now(UTC).isoformat(),
                     )
                     patterns.append(pattern)
 
@@ -320,7 +320,7 @@ class LearningEngine:
                 keep_rate = stats["kept"] / total
                 if keep_rate > 0.6 or keep_rate < 0.3:
                     pattern = LearningPattern(
-                        pattern_id=f"promise_{cls}_{tier}_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+                        pattern_id=f"promise_{cls}_{tier}_{datetime.now(UTC).strftime('%Y%m%d')}",
                         pattern_type="promise",
                         context={"failure_class": cls, "amount_tier": tier},
                         action="adjust_promise_ev_multiplier",
@@ -328,8 +328,8 @@ class LearningEngine:
                         success_rate=keep_rate,
                         sample_size=total,
                         confidence=min(0.9, abs(keep_rate - 0.5) * 2 * (total / 40)),
-                        discovered_at=datetime.now(timezone.utc).isoformat(),
-                        last_validated=datetime.now(timezone.utc).isoformat(),
+                        discovered_at=datetime.now(UTC).isoformat(),
+                        last_validated=datetime.now(UTC).isoformat(),
                     )
                     patterns.append(pattern)
 
@@ -348,7 +348,7 @@ class LearningEngine:
 
         if escalation_recovery_rate > 0.4:
             pattern = LearningPattern(
-                pattern_id=f"escalation_recovery_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+                pattern_id=f"escalation_recovery_{datetime.now(UTC).strftime('%Y%m%d')}",
                 pattern_type="escalation",
                 context={"trigger": "human_escalation"},
                 action="escalate_earlier",
@@ -356,8 +356,8 @@ class LearningEngine:
                 success_rate=escalation_recovery_rate,
                 sample_size=len(escalated),
                 confidence=min(0.8, escalation_recovery_rate * (len(escalated) / 20)),
-                discovered_at=datetime.now(timezone.utc).isoformat(),
-                last_validated=datetime.now(timezone.utc).isoformat(),
+                discovered_at=datetime.now(UTC).isoformat(),
+                last_validated=datetime.now(UTC).isoformat(),
             )
             patterns.append(pattern)
 
@@ -394,7 +394,7 @@ class LearningEngine:
     def apply_pattern(self, pattern: LearningPattern, case: RecoveryCase, store) -> dict:
         """Apply a pattern to a case, returning suggested modifications."""
         pattern.applications += 1
-        pattern.last_validated = datetime.now(timezone.utc).isoformat()
+        pattern.last_validated = datetime.now(UTC).isoformat()
         self._save_pattern(pattern)
 
         suggestion = {
@@ -431,7 +431,7 @@ class LearningEngine:
         for pattern in list(self._patterns.values()):
             # Check if pattern still holds
             cases = self.store.all_cases()
-            recent = [c for c in cases if c.created_at >= (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()]
+            recent = [c for c in cases if c.created_at >= (datetime.now(UTC) - timedelta(days=7)).isoformat()]
 
             applicable = [c for c in recent if self._matches_context(pattern, c)]
             if len(applicable) >= 10:
@@ -446,7 +446,7 @@ class LearningEngine:
                     actual_rate = recovered / len(relevant)
 
                     pattern.validated_success_rate = actual_rate
-                    pattern.last_validated = datetime.now(timezone.utc).isoformat()
+                    pattern.last_validated = datetime.now(UTC).isoformat()
 
                     # Update confidence based on validation
                     if actual_rate >= pattern.success_rate * 0.8:
@@ -489,7 +489,7 @@ class LearningEngine:
             "by_type": by_type,
             "high_confidence": sum(1 for p in self._patterns.values() if p.confidence >= 0.8),
             "recently_validated": sum(1 for p in self._patterns.values()
-                                     if (datetime.now(timezone.utc) - datetime.fromisoformat(p.last_validated.replace('Z', '+00:00'))).days < 7),
+                                     if (datetime.now(UTC) - datetime.fromisoformat(p.last_validated.replace('Z', '+00:00'))).days < 7),
         }
 
 

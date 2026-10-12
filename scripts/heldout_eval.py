@@ -11,7 +11,7 @@ import argparse
 import json
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -34,7 +34,7 @@ def main() -> None:
 
     # Training uses seed 42; held-out uses 999 — no overlap
     payments = generate_batch(
-        args.n, datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc), seed=args.seed
+        args.n, datetime(2026, 8, 20, 6, 0, tzinfo=UTC), seed=args.seed
     )
 
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:

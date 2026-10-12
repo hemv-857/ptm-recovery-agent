@@ -1,5 +1,9 @@
 # Lint config. `ruff check .` must pass — enforced in CI.
 line-length = 100
+# Pinned explicitly: without it ruff infers from the running interpreter, so a
+# ruff release that changes the default silently rewrites which rules fire.
+# CI matrix is 3.12/3.13, so py312 is the real floor.
+target-version = "py312"
 
 [lint]
 select = ["E", "F", "I", "W", "UP", "B", "SIM", "RUF", "C4", "EXE", "PYI"]

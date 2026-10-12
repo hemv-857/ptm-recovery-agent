@@ -11,7 +11,7 @@ import argparse
 import json
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -32,7 +32,7 @@ def run_seed(seed: int, batch_size: int, cfg: dict) -> dict:
     store = Store(Path(db_path))
     payments = generate_batch(
         batch_size,
-        datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc),
+        datetime(2026, 8, 20, 6, 0, tzinfo=UTC),
         seed=seed,
     )
     run(payments, cfg, store)

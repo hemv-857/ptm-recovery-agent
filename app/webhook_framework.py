@@ -7,8 +7,8 @@ import hmac
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 
 import httpx
@@ -16,7 +16,7 @@ import httpx
 from .store import Store
 
 
-class WebhookEventType(str, Enum):
+class WebhookEventType(StrEnum):
     """Types of webhook events we can send/receive."""
     # Outbound events (we send to external systems)
     CASE_CREATED = "case.created"
@@ -43,7 +43,7 @@ class WebhookEventType(str, Enum):
     EXTERNAL_DISPUTE_RAISED = "external.dispute_raised"
 
 
-class WebhookDeliveryStatus(str, Enum):
+class WebhookDeliveryStatus(StrEnum):
     PENDING = "pending"
     DELIVERED = "delivered"
     FAILED = "failed"
@@ -66,8 +66,8 @@ class WebhookEndpoint:
         "timeout_seconds": 30,
     })
     is_active: bool = True
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -85,7 +85,7 @@ class WebhookDelivery:
     response_status: int | None = None
     response_body: str | None = None
     error: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     completed_at: str | None = None
 
 
@@ -96,7 +96,7 @@ class WebhookEvent:
     payload: dict[str, Any]
     case_id: str | None = None
     campaign_id: str | None = None
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     idempotency_key: str = field(default_factory=lambda: f"evt_{uuid.uuid4().hex[:16]}")
 
 
@@ -190,7 +190,7 @@ class WebhookManager:
 
     # Endpoint management
     def register_endpoint(self, endpoint: WebhookEndpoint) -> WebhookEndpoint:
-        endpoint.updated_at = datetime.now(timezone.utc).isoformat()
+        endpoint.updated_at = datetime.now(UTC).isoformat()
         self._endpoints[endpoint.endpoint_id] = endpoint
         self._save_endpoint(endpoint)
         return endpoint
@@ -211,7 +211,7 @@ class WebhookManager:
         for key, value in updates.items():
             if hasattr(endpoint, key):
                 setattr(endpoint, key, value)
-        endpoint.updated_at = datetime.now(timezone.utc).isoformat()
+        endpoint.updated_at = datetime.now(UTC).isoformat()
         self._save_endpoint(endpoint)
         return endpoint
 
@@ -252,7 +252,7 @@ class WebhookManager:
     def process_delivery_queue(self, max_deliveries: int = 50) -> int:
         """Process pending deliveries with retry logic."""
         processed = 0
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for delivery in self._delivery_queue[:max_deliveries]:
             if delivery.status not in (WebhookDeliveryStatus.PENDING, WebhookDeliveryStatus.RETRYING):
@@ -279,14 +279,14 @@ class WebhookManager:
 
     def _attempt_delivery(self, delivery: WebhookDelivery, endpoint: WebhookEndpoint) -> bool:
         delivery.attempt += 1
-        delivery.last_attempt_at = datetime.now(timezone.utc).isoformat()
+        delivery.last_attempt_at = datetime.now(UTC).isoformat()
         delivery.status = WebhookDeliveryStatus.RETRYING
 
         try:
             # Prepare payload
             payload = {
                 "event": delivery.event_type.value,
-                "timestamp": delivery.payload.get("timestamp", datetime.now(timezone.utc).isoformat()),
+                "timestamp": delivery.payload.get("timestamp", datetime.now(UTC).isoformat()),
                 "idempotency_key": delivery.payload.get("idempotency_key", ""),
                 "data": delivery.payload,
             }
@@ -314,7 +314,7 @@ class WebhookManager:
 
             if 200 <= response.status_code < 300:
                 delivery.status = WebhookDeliveryStatus.DELIVERED
-                delivery.completed_at = datetime.now(timezone.utc).isoformat()
+                delivery.completed_at = datetime.now(UTC).isoformat()
                 self._save_delivery(delivery)
                 return True
             else:
@@ -327,10 +327,10 @@ class WebhookManager:
 
             if delivery.attempt >= max_retries:
                 delivery.status = WebhookDeliveryStatus.DEAD_LETTER
-                delivery.completed_at = datetime.now(timezone.utc).isoformat()
+                delivery.completed_at = datetime.now(UTC).isoformat()
             else:
                 delay = backoff[min(delivery.attempt - 1, len(backoff) - 1)]
-                delivery.next_retry_at = (datetime.now(timezone.utc) + timedelta(seconds=delay)).isoformat()
+                delivery.next_retry_at = (datetime.now(UTC) + timedelta(seconds=delay)).isoformat()
                 delivery.status = WebhookDeliveryStatus.RETRYING
 
             self._save_delivery(delivery)
@@ -370,7 +370,7 @@ class WebhookManager:
             )
             self.store.conn.execute(
                 "INSERT OR IGNORE INTO webhook_idempotency (key, created_at) VALUES (?,?)",
-                (idempotency_key, datetime.now(timezone.utc).isoformat()),
+                (idempotency_key, datetime.now(UTC).isoformat()),
             )
             self.store.conn.commit()
 
@@ -409,7 +409,7 @@ class WebhookManager:
 
         # Mark recovered (would use agent.mark_recovered in real impl)
         case.recovered_amount = amount
-        case.recovered_at = datetime.now(timezone.utc).isoformat()
+        case.recovered_at = datetime.now(UTC).isoformat()
         case.status = type("CaseStatus", (), {"value": "recovered"})()  # Simplified
         self.store.upsert_case(case)
 
@@ -483,7 +483,7 @@ class WebhookManager:
 
         # Escalate to human
         case.metadata = case.metadata or {}
-        case.metadata["dispute"] = {"raised_at": datetime.now(timezone.utc).isoformat(), "reason": reason}
+        case.metadata["dispute"] = {"raised_at": datetime.now(UTC).isoformat(), "reason": reason}
         self.store.upsert_case(case)
 
         return {"status": "dispute_recorded", "case_id": case_id, "escalated": True}
@@ -492,7 +492,7 @@ class WebhookManager:
     def get_delivery_stats(self, endpoint_id: str | None = None, days: int = 7) -> dict:
         """Get delivery statistics."""
         try:
-            since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+            since = (datetime.now(UTC) - timedelta(days=days)).isoformat()
             query = "SELECT status, COUNT(*) as count FROM webhook_deliveries WHERE created_at >= ?"
             params = [since]
             if endpoint_id:

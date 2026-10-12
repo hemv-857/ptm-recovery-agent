@@ -11,7 +11,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from zoneinfo import ZoneInfo
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -26,7 +26,7 @@ _WEEKDAYS = {
 }
 
 
-class Intent(str, Enum):
+class Intent(StrEnum):
     OPT_OUT = "opt_out"
     ALREADY_PAID = "already_paid"
     PROMISE = "promise"

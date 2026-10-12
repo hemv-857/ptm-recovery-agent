@@ -10,7 +10,7 @@ import argparse
 import json
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -39,7 +39,7 @@ def main() -> None:
     if db_path.exists():
         db_path.unlink()
 
-    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)  # IST noon Aug 20
+    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=UTC)  # IST noon Aug 20
     print(f"[1/4] generating {n} synthetic failed payments ...")
     payments = generate_batch(n, t_start, seed=args.seed)
     groups = assign_groups(payments)
