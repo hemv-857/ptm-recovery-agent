@@ -15,7 +15,7 @@ import time as _time
 import urllib.error
 import urllib.request
 from contextvars import ContextVar
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -145,7 +145,7 @@ def _ensure_seeded():
         from simulate.engine import run as engine_run
 
         print("[auto-seed] database empty, seeding demo data...", flush=True)
-        t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
+        t_start = datetime(2026, 8, 20, 6, 0, tzinfo=UTC)
         payments = generate_batch(200, t_start, seed=42)
         engine_run(payments, _cfg(), store)
         _update_live_state(store)
@@ -233,7 +233,7 @@ async def paytm_webhook(
         case = store.get_case_by_payment(fp.payment_id)
         if case is None:
             case = ingest_failure(fp, store, cfg)
-        plan_and_schedule(case, cfg, datetime.now(timezone.utc), store)
+        plan_and_schedule(case, cfg, datetime.now(UTC), store)
         store.mark_event_processed(event_id, "TXN_FAILED")
         return {"status": "ingested", "case_id": case.case_id}
 
@@ -242,7 +242,7 @@ async def paytm_webhook(
         if case:
             mark_recovered(
                 case, event.get("TXNID", "paytm_paid"), case.amount,
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
                 store, via="webhook", verification="live_verified",
             )
             store.mark_event_processed(event_id, "TXN_SUCCESS")
@@ -389,7 +389,7 @@ async def handle_paytm_format_webhook(
                 from .notifier import case_line, notify
                 notify(f":rocket: recovery-agent — high-value case awaiting "
                        f"human approval: {case_line(case)}")
-        plan_and_schedule(case, cfg, datetime.now(timezone.utc), store)
+        plan_and_schedule(case, cfg, datetime.now(UTC), store)
         store.mark_event_processed(event_id, etype)
         return {"status": "ingested", "case_id": case.case_id}
 
@@ -417,8 +417,8 @@ async def handle_paytm_format_webhook(
         verification = "live_verified" if is_live else "demo_verified"
         mark_recovered(
             case, payment_id or "plink_paid", pl["amount"],
-            datetime.fromtimestamp(paid_at, tz=timezone.utc).isoformat()
-            if paid_at else datetime.now(timezone.utc).isoformat(),
+            datetime.fromtimestamp(paid_at, tz=UTC).isoformat()
+            if paid_at else datetime.now(UTC).isoformat(),
             store, via="webhook", verification=verification,
         )
         store.mark_event_processed(event_id, etype)
@@ -452,7 +452,7 @@ def demo_verify(case_id: str) -> dict:
         amount = case.amount
         from .agent import mark_recovered
         mark_recovered(case, "demo_payment", amount,
-                       datetime.now(timezone.utc).isoformat(),
+                       datetime.now(UTC).isoformat(),
                        store, via="demo", verification="demo_verified")
         return {
             "status": "recovered",
@@ -564,7 +564,7 @@ def request_human_action(case_id: str, payload: dict, x_agent_token: str = Heade
     if plan:
         from .workflow import WorkflowState
         plan.current_state = WorkflowState.HUMAN_ACTION_PENDING
-        plan.updated_at = datetime.now(timezone.utc).isoformat()
+        plan.updated_at = datetime.now(UTC).isoformat()
         store.save_workflow_plan(plan)
 
     return {"status": "requested", "request_id": req.request_id, "case_id": case_id}
@@ -605,7 +605,7 @@ def complete_human_action(request_id: str, payload: dict, x_agent_token: str = H
 
     case = store.get_case(row["case_id"])
     if case:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         case = apply_human_action_result(case, result, store, _cfg(), now)
 
         store.append_audit(AuditEvent(
@@ -690,7 +690,7 @@ def opt_out(case_id: str, x_agent_token: str = Header("")) -> dict:
 def tick(x_agent_token: str = Header("")) -> dict:
     """Run all due scheduled actions. In production a cron hits this every minute."""
     _require_agent_token(x_agent_token)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     store = _store()
     cfg = _cfg()
     channels = ChannelAdapter()
@@ -739,13 +739,13 @@ async def inbound_reply(request: Request) -> dict:
 
     if parsed.intent is Intent.ALREADY_PAID:
         mark_recovered(case, "manual_confirmation", case.amount,
-                       datetime.now(timezone.utc).isoformat(), store,
+                       datetime.now(UTC).isoformat(), store,
                        via="customer_reply")
         return {"status": "recovered"}
 
     if parsed.intent is Intent.PROMISE:
-        due_utc = parsed.due.astimezone(timezone.utc)
-        case.promised_at = datetime.now(timezone.utc).isoformat()
+        due_utc = parsed.due.astimezone(UTC)
+        case.promised_at = datetime.now(UTC).isoformat()
         case.promise_due = due_utc.isoformat()
         case.touch()
         store.upsert_case(case)
@@ -1011,7 +1011,7 @@ def agent_tick(x_agent_token: str = Header("")) -> dict:
     from .workflow import WorkflowEngine
 
     engine = WorkflowEngine(store, cfg, ChannelAdapter(), VoiceProvider())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     executed = engine.run_autonomous_tick(now)
     return {"executed": executed, "timestamp": now.isoformat()}
 
@@ -1033,7 +1033,7 @@ def agent_run_case(case_id: str, x_agent_token: str = Header("")) -> dict:
     from .workflow import WorkflowEngine
 
     engine = WorkflowEngine(store, cfg, ChannelAdapter(), VoiceProvider())
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     plan = store.get_workflow_plan(case_id)
     if not plan:
@@ -1055,14 +1055,14 @@ def agent_pause_case(case_id: str, x_agent_token: str = Header("")) -> dict:
 
     case.metadata = case.metadata or {}
     case.metadata["paused"] = True
-    case.metadata["paused_at"] = datetime.now(timezone.utc).isoformat()
+    case.metadata["paused_at"] = datetime.now(UTC).isoformat()
     case.touch()
     store.upsert_case(case)
 
     plan = store.get_workflow_plan(case_id)
     if plan:
         plan.metadata["paused"] = True
-        plan.updated_at = datetime.now(timezone.utc).isoformat()
+        plan.updated_at = datetime.now(UTC).isoformat()
         store.save_workflow_plan(plan)
 
     store.append_audit(AuditEvent(
@@ -1084,14 +1084,14 @@ def agent_resume_case(case_id: str, x_agent_token: str = Header("")) -> dict:
 
     if case.metadata:
         case.metadata["paused"] = False
-        case.metadata["resumed_at"] = datetime.now(timezone.utc).isoformat()
+        case.metadata["resumed_at"] = datetime.now(UTC).isoformat()
         case.touch()
         store.upsert_case(case)
 
     plan = store.get_workflow_plan(case_id)
     if plan:
         plan.metadata["paused"] = False
-        plan.updated_at = datetime.now(timezone.utc).isoformat()
+        plan.updated_at = datetime.now(UTC).isoformat()
         store.save_workflow_plan(plan)
 
     store.append_audit(AuditEvent(
@@ -1120,7 +1120,7 @@ def agent_inject_instruction(case_id: str, payload: dict, x_agent_token: str = H
 
     case.metadata = case.metadata or {}
     case.metadata["operator_instruction"] = instruction
-    case.metadata["instruction_at"] = datetime.now(timezone.utc).isoformat()
+    case.metadata["instruction_at"] = datetime.now(UTC).isoformat()
     case.touch()
     store.upsert_case(case)
 
@@ -1158,7 +1158,7 @@ def agent_status(x_agent_token: str = Header("")) -> dict:
         "paused_cases": len(paused),
         "pending_human_actions": pending_human,
         "bandit_contexts": len(bandit_stats),
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -1334,7 +1334,7 @@ async def batch_run_stream(
         # Rehearsed seed for consistent demo runs (arpit1021-ux pattern)
         effective_seed = 42 if rehearsed else seed
 
-        payments = generate_batch(cases, datetime.now(timezone.utc), seed=effective_seed)
+        payments = generate_batch(cases, datetime.now(UTC), seed=effective_seed)
         total = len(payments)
 
         yield f"data: {total}\n\n"
@@ -1531,7 +1531,7 @@ def cash_flow_forecast() -> dict[str, Any]:
     base_daily = (pending_amount * recovery_rate) / 7
 
     # Add salary-cycle boost for insufficient funds (1st/5th of month)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     salary_days = {1, 5}
     projections = []
     for day_offset in range(7):
@@ -1672,7 +1672,7 @@ def model_calibration() -> dict[str, Any]:
         store = _store()
         action = _contact_ladder(c, _cfg(), store)
         pred = predict_recovery(c, action, len(c.attempt_times),
-                                datetime.now(timezone.utc).isoformat(), _cfg())
+                                datetime.now(UTC).isoformat(), _cfg())
         recovered = 1 if c.recovered_amount > 0 else 0
         predictions.append((pred.probability, recovered))
 
@@ -1731,7 +1731,7 @@ def case_decision(case_id: str) -> dict[str, Any]:
         raise HTTPException(404, "case not found")
 
     cfg = _cfg()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     from .models import ActionType
     from .policy import Decision, economic_stop, evaluate
@@ -2351,7 +2351,7 @@ def case_uplift(case_id: str) -> dict[str, Any]:
     }
 
 
-FIXED_NOW = datetime.now(timezone.utc)
+FIXED_NOW = datetime.now(UTC)
 
 
 # --- Intervention Budget (recoup pattern) ---
@@ -2516,7 +2516,7 @@ async def ws_replay(websocket: WebSocket, seed: int = 42, cases: int = 100):
         cfg = _cfg()
         store = _store()
 
-        payments = generate_batch(cases, datetime.now(timezone.utc), seed=seed)
+        payments = generate_batch(cases, datetime.now(UTC), seed=seed)
         total = len(payments)
 
         await websocket.send_json({"type": "start", "total": total, "seed": seed})
@@ -2623,7 +2623,7 @@ async def stream_events():
             amount = random.randint(500, 5000)
             event = {
                 "type": "event",
-                "ts": datetime.now(timezone.utc).isoformat(),
+                "ts": datetime.now(UTC).isoformat(),
                 "actor": actor,
                 "event_type": evt,
                 "case_id": case_id,
@@ -2990,7 +2990,7 @@ def demo_run() -> dict[str, Any]:
         ("invoice_overdue", FailureClass.INVOICE_OVERDUE, "netbanking"),
     ]
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     seeded = 0
 
     for i in range(200):
@@ -3090,14 +3090,14 @@ def demo_full_batch(n: int = 1000, seed: int = 42) -> dict[str, Any]:
     store = _store()
 
     # Generate batch and run simulation
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from simulate.batch_generator import generate_batch
     from simulate.engine import run
 
     from .measure import build_report
 
-    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
+    t_start = datetime(2026, 8, 20, 6, 0, tzinfo=UTC)
     payments = generate_batch(n, t_start, seed=seed)
 
     # Run full simulation
@@ -3262,7 +3262,7 @@ def portfolio_recommendation(capacity_hours: float = 4.0) -> dict[str, Any]:
         try:
             pred = predict_recovery(
                 c, ActionType.NUDGE_WHATSAPP, len(c.attempt_times),
-                datetime.now(timezone.utc).isoformat(), cfg,
+                datetime.now(UTC).isoformat(), cfg,
             )
             prob = float(pred.probability)
         except Exception:
@@ -3374,7 +3374,7 @@ def export_csv(
     return Response(
         content=buf.getvalue(),
         media_type="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=recovery_export_{datetime.now(timezone.utc).strftime('%Y%m%d')}.csv"},
+        headers={"Content-Disposition": f"attachment; filename=recovery_export_{datetime.now(UTC).strftime('%Y%m%d')}.csv"},
     )
 
 
@@ -3385,7 +3385,7 @@ def export_report() -> dict[str, Any]:
     cases = store.all_cases()
     rep = build_report(cases, store.actions_rows(), _cfg())
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "headline": rep.get("headline", {}),
         "per_class": rep.get("per_class", {}),
         "cost": rep.get("cost", {}),
@@ -3478,7 +3478,7 @@ _sla_log: list[dict] = []
 def _record_sla(endpoint: str, duration_ms: float, status: str = "ok"):
     _sla_log.append({
         "endpoint": endpoint, "duration_ms": round(duration_ms, 2),
-        "status": status, "ts": datetime.now(timezone.utc).isoformat(),
+        "status": status, "ts": datetime.now(UTC).isoformat(),
     })
     if len(_sla_log) > 5000:
         _sla_log[:] = _sla_log[-2500:]
@@ -3508,7 +3508,7 @@ def sla_dashboard() -> dict[str, Any]:
         channel_counts[ch] = channel_counts.get(ch, 0) + 1
 
     # System health
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     recent_cutoff = (now - timedelta(hours=1)).isoformat()
     recent_actions = [a for a in executed if (a.get("executed_at") or "") >= recent_cutoff]
 
@@ -3566,7 +3566,7 @@ def case_replay(case_id: str) -> dict[str, Any]:
     from .classifier import classify
     from .selector import select_next_action
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     steps = []
     step_num = 0

@@ -3,8 +3,8 @@ Replaces the single-action cron-driven model with autonomous multi-step plans.""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -17,7 +17,7 @@ from .tool_protocol import ToolName
 IST = ZoneInfo("Asia/Kolkata")
 
 
-class WorkflowState(str, Enum):
+class WorkflowState(StrEnum):
     """States in the recovery workflow."""
     NEW = "new"
     CLASSIFIED = "classified"
@@ -38,7 +38,7 @@ class WorkflowState(str, Enum):
     WRITTEN_OFF = "written_off"
 
 
-class WorkflowTransition(str, Enum):
+class WorkflowTransition(StrEnum):
     """Valid transitions between workflow states."""
     CLASSIFY = "classify"
     PLAN_ACTION = "plan_action"
@@ -117,8 +117,8 @@ class WorkflowPlan:
     case_id: str
     current_state: WorkflowState
     steps: list[WorkflowStep] = field(default_factory=list)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -153,7 +153,7 @@ class HumanActionResult:
     action_taken: str
     outcome: str
     notes: str = ""
-    completed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    completed_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     next_action_suggestion: ActionType | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
@@ -179,7 +179,7 @@ class WorkflowEngine:
         if case.promised_at and not case.recovered_amount:
             if case.promise_due:
                 due = datetime.fromisoformat(case.promise_due.replace('Z', '+00:00'))
-                if datetime.now(timezone.utc) >= due:
+                if datetime.now(UTC) >= due:
                     return WorkflowState.PROMISE_CHECKING
                 return WorkflowState.PROMISE_CHECK_SCHEDULED
             return WorkflowState.PROMISE_MADE
@@ -621,13 +621,13 @@ def create_human_action_request(case: RecoveryCase, reason: str, context: dict,
         request_id=f"human_{uuid.uuid4().hex[:8]}",
         reason=reason,
         context=context,
-        requested_at=datetime.now(timezone.utc).isoformat(),
+        requested_at=datetime.now(UTC).isoformat(),
         options=options or [
             {"action": "approve", "label": "Approve & Continue"},
             {"action": "call_customer", "label": "Call Customer"},
             {"action": "write_off", "label": "Write Off"},
         ],
-        deadline=(datetime.now(timezone.utc) + timedelta(hours=4)).isoformat(),
+        deadline=(datetime.now(UTC) + timedelta(hours=4)).isoformat(),
     )
 
 

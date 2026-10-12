@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .models import ActionType, RecoveryCase
@@ -179,7 +179,7 @@ Generate a ToolPlan with 1-5 steps. Each step: tool, params, reasoning, expected
     def _parse_plan(self, result: dict, case_id: str) -> ToolPlan:
         plan = ToolPlan(case_id=case_id)
         plan.metadata["llm_generated"] = True
-        plan.metadata["generated_at"] = datetime.now(timezone.utc).isoformat()
+        plan.metadata["generated_at"] = datetime.now(UTC).isoformat()
 
         for i, step in enumerate(result.get("steps", [])):
             tool_name = ToolName(step["tool"])
@@ -214,7 +214,7 @@ def create_fallback_plan(case: RecoveryCase, cfg: dict, store=None) -> ToolPlan:
     plan = ToolPlan(case_id=case.case_id)
     plan.metadata["fallback"] = "rule_based"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     action = select_next_action(case, cfg, now, store=store)
 
     if action:

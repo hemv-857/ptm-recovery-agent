@@ -2,7 +2,7 @@
 import hashlib
 import hmac
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 import yaml
@@ -120,7 +120,7 @@ def test_report_has_cost_by_channel(tmp_path):
 
     cfg = yaml.safe_load(open("config.yaml"))
     payments = generate_batch(30, datetime(2026, 8, 20, 6, 0,
-                                           tzinfo=timezone.utc), seed=3)
+                                           tzinfo=UTC), seed=3)
     store = Store(tmp_path / "c.db")
     run(payments, cfg, store)
     rep = build_report(store.all_cases(), store.actions_rows(), cfg)
@@ -139,7 +139,7 @@ def test_dashboard_renders_spend_pie(tmp_path):
 
     cfg = yaml.safe_load(open("config.yaml"))
     payments = generate_batch(30, datetime(2026, 8, 20, 6, 0,
-                                           tzinfo=timezone.utc), seed=3)
+                                           tzinfo=UTC), seed=3)
     store = Store(tmp_path / "pie.db")
     run(payments, cfg, store)
     html = render_dashboard(build_report(store.all_cases(), store.actions_rows(), cfg))

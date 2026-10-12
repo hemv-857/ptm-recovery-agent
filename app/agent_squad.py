@@ -5,8 +5,8 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 
 from .llm_planner import LLMPlanner
@@ -14,7 +14,7 @@ from .models import ActionType, FailureClass, RecoveryCase
 from .tool_protocol import ToolName
 
 
-class AgentRole(str, Enum):
+class AgentRole(StrEnum):
     """Roles in the recovery agent squad."""
     CLASSIFIER = "classifier"        # Diagnoses failure, enriches context
     NEGOTIATOR = "negotiator"        # Handles customer dialogue, offers, promises
@@ -24,7 +24,7 @@ class AgentRole(str, Enum):
     ANALYST = "analyst"              # Monitors performance, suggests improvements
 
 
-class MessageType(str, Enum):
+class MessageType(StrEnum):
     """Inter-agent message types."""
     TASK_REQUEST = "task_request"
     TASK_RESPONSE = "task_response"
@@ -45,7 +45,7 @@ class AgentMessage:
     payload: dict[str, Any] = field(default_factory=dict)
     case_id: str = ""
     correlation_id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     requires_response: bool = False
 
 
@@ -103,7 +103,7 @@ class BaseAgent:
         """Log agent activity to audit trail."""
         self.store.append_audit(type("AuditEvent", (), {
             "event_id": f"{self.role.value}_{uuid.uuid4().hex[:8]}",
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "actor": f"agent_{self.role.value}",
             "event_type": f"agent.{activity}",
             "case_id": case_id,
@@ -278,7 +278,7 @@ class NegotiatorAgent(BaseAgent):
         action = type('Action', (), {
             'action_id': f"neg_{uuid.uuid4().hex[:8]}",
             'action_type': action_type,
-            'scheduled_at': datetime.now(timezone.utc).isoformat(),
+            'scheduled_at': datetime.now(UTC).isoformat(),
             'reasoning': {"strategy": "negotiator_reminder", "channel": channel},
             'status': None, 'blocked_reason': None, 'message_text': None, 'cost_paise': 0,
         })()
@@ -307,7 +307,7 @@ class NegotiatorAgent(BaseAgent):
 
     def _process_promise(self, case: RecoveryCase, promise_date: str, amount: int | None) -> dict:
         """Process customer promise to pay."""
-        case.promised_at = datetime.now(timezone.utc).isoformat()
+        case.promised_at = datetime.now(UTC).isoformat()
         case.promise_due = promise_date
         if amount:
             case.amount = amount
@@ -527,7 +527,7 @@ class StrategistAgent(BaseAgent):
             from .workflow import WorkflowStep
             action_type = self._tool_to_action_type(call.tool)
             if action_type:
-                scheduled = datetime.now(timezone.utc)
+                scheduled = datetime.now(UTC)
                 if "schedule_hours" in call.reasoning:
                     scheduled += timedelta(hours=call.reasoning["schedule_hours"])
                 steps.append(WorkflowStep(
@@ -541,7 +541,7 @@ class StrategistAgent(BaseAgent):
             "case_id": case.case_id,
             "steps": [{"action": s.action_type.value, "scheduled": s.scheduled_at, "reasoning": s.reasoning} for s in steps],
             "total_steps": len(steps),
-            "estimated_completion": (datetime.now(timezone.utc) + timedelta(hours=len(steps) * 2)).isoformat(),
+            "estimated_completion": (datetime.now(UTC) + timedelta(hours=len(steps) * 2)).isoformat(),
         }
 
         self.log_activity(message.case_id, "planned", {"steps": len(steps)})
@@ -624,7 +624,7 @@ class AnalystAgent(BaseAgent):
             "recovered": recovered,
             "recovery_rate": recovery_rate,
             "by_class": by_class,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     def _handle_status_update(self, message: AgentMessage) -> AgentMessage:

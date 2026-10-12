@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.models import (
@@ -29,7 +29,7 @@ def _make_case(case_id: str = "case_1", method: str = "card") -> RecoveryCase:
         status=CaseStatus.OPEN,
         loss_age_days=1,
         attempt_times=[],
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )
 
 
@@ -62,7 +62,7 @@ def test_store_get_action_by_id():
             case_id="case_1",
             action_type=ActionType.NUDGE_SMS,
             status="scheduled",
-            scheduled_at=datetime.now(timezone.utc).isoformat(),
+            scheduled_at=datetime.now(UTC).isoformat(),
         )
         store.save_action(action)
 
@@ -95,7 +95,7 @@ def test_store_actions_rows():
                 case_id="case_1",
                 action_type=ActionType.NUDGE_SMS,
                 status="executed" if i < 2 else "scheduled",
-                scheduled_at=datetime.now(timezone.utc).isoformat(),
+                scheduled_at=datetime.now(UTC).isoformat(),
             )
             store.save_action(action)
 

@@ -3,13 +3,13 @@ Enables chaining, shared context, and LLM-driven multi-step plans."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
 
-class ToolName(str, Enum):
+class ToolName(StrEnum):
     """Available tools for the agent."""
     SEND_WHATSAPP = "send_whatsapp"
     SEND_SMS = "send_sms"
@@ -26,7 +26,7 @@ class ToolName(str, Enum):
     UPDATE_CASE_METADATA = "update_case_metadata"
 
 
-class ToolCallStatus(str, Enum):
+class ToolCallStatus(StrEnum):
     PENDING = "pending"
     EXECUTING = "executing"
     COMPLETED = "completed"
@@ -56,8 +56,8 @@ class ToolPlan:
     plan_id: str = field(default_factory=lambda: f"tp_{uuid4().hex[:12]}")
     case_id: str = ""
     calls: list[ToolCall] = field(default_factory=list)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def add_call(self, tool: ToolName, params: dict, context: dict | None = None,

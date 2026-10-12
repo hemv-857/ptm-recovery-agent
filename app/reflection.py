@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from .measure import build_report
@@ -21,7 +21,7 @@ class ReflectionInsight:
     description: str
     evidence: dict[str, Any]
     proposed_action: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -48,11 +48,11 @@ class SelfReflectionEngine:
         """Check if enough time has passed since last reflection."""
         if self._last_reflection is None:
             return True
-        return datetime.now(timezone.utc) - self._last_reflection >= timedelta(hours=min_interval_hours)
+        return datetime.now(UTC) - self._last_reflection >= timedelta(hours=min_interval_hours)
 
     def reflect(self) -> ReflectionReport:
         """Perform self-reflection and generate report."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         period_end = now
         period_start = now - timedelta(days=7)  # Look back 7 days
 
@@ -108,7 +108,7 @@ class SelfReflectionEngine:
         treatment_rate = hd.get("recovery_rate_treatment", 0)
         if treatment_rate < 0.5:
             insights.append(ReflectionInsight(
-                insight_id=f"perf_low_recovery_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"perf_low_recovery_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="performance",
                 severity="warning",
                 title="Low Treatment Recovery Rate",
@@ -121,7 +121,7 @@ class SelfReflectionEngine:
         lift = hd.get("incremental_recovery_pp", 0)
         if lift < 20:
             insights.append(ReflectionInsight(
-                insight_id=f"perf_low_lift_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"perf_low_lift_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="performance",
                 severity="warning",
                 title="Low Incremental Lift",
@@ -135,7 +135,7 @@ class SelfReflectionEngine:
         for cls, data in per_class.items():
             if data.get("treatment_rate", 0) < 0.3 and data.get("count", 0) > 10:
                 insights.append(ReflectionInsight(
-                    insight_id=f"perf_class_{cls}_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                    insight_id=f"perf_class_{cls}_{datetime.now(UTC).strftime('%H%M%S')}",
                     category="performance",
                     severity="info",
                     title=f"Low Recovery for {cls}",
@@ -155,7 +155,7 @@ class SelfReflectionEngine:
             block_rate = total_blocked / max(len(cases), 1)
             if block_rate > 0.3:
                 insights.append(ReflectionInsight(
-                    insight_id=f"compliance_high_block_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                    insight_id=f"compliance_high_block_{datetime.now(UTC).strftime('%H%M%S')}",
                     category="compliance",
                     severity="warning",
                     title="High Policy Block Rate",
@@ -169,7 +169,7 @@ class SelfReflectionEngine:
         total_contacts = report["cost"].get("contacts_executed", 1)
         if opt_outs / max(total_contacts, 1) > 0.05:
             insights.append(ReflectionInsight(
-                insight_id=f"compliance_opt_outs_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"compliance_opt_outs_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="compliance",
                 severity="info",
                 title="Elevated Opt-Out Rate",
@@ -187,7 +187,7 @@ class SelfReflectionEngine:
 
         if cpir and cpir > 500:  # > ₹5 per incremental recovery
             insights.append(ReflectionInsight(
-                insight_id=f"eff_high_cost_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"eff_high_cost_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="efficiency",
                 severity="warning",
                 title="High Cost Per Incremental Recovery",
@@ -200,7 +200,7 @@ class SelfReflectionEngine:
         redundant = cost.get("redundant_contact_share", 0)
         if redundant > 0.2:
             insights.append(ReflectionInsight(
-                insight_id=f"eff_redundant_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"eff_redundant_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="efficiency",
                 severity="info",
                 title="High Redundant Contact Share",
@@ -221,7 +221,7 @@ class SelfReflectionEngine:
 
         if received > 20 and keep_rate is not None and keep_rate < 0.4:
             insights.append(ReflectionInsight(
-                insight_id=f"cx_promise_keep_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"cx_promise_keep_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="customer_experience",
                 severity="warning",
                 title="Low Promise Keep Rate",
@@ -234,7 +234,7 @@ class SelfReflectionEngine:
         escalated = sum(1 for c in cases if c.status == CaseStatus.WRITTEN_OFF and c.written_off_reason == "escalated_to_human_finance_ops")
         if escalated / max(len(cases), 1) > 0.15:
             insights.append(ReflectionInsight(
-                insight_id=f"cx_escalation_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                insight_id=f"cx_escalation_{datetime.now(UTC).strftime('%H%M%S')}",
                 category="customer_experience",
                 severity="info",
                 title="High Human Escalation Rate",
@@ -264,7 +264,7 @@ class SelfReflectionEngine:
                         worst = min(arms.items(), key=lambda x: x[1]["mean_reward"])
                         if best[1]["mean_reward"] - worst[1]["mean_reward"] > 0.3:
                             insights.append(ReflectionInsight(
-                                insight_id=f"learn_bandit_{ctx}_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                                insight_id=f"learn_bandit_{ctx}_{datetime.now(UTC).strftime('%H%M%S')}",
                                 category="performance",
                                 severity="info",
                                 title=f"Channel Performance Gap for {ctx}",
@@ -281,7 +281,7 @@ class SelfReflectionEngine:
             model = get_model()
             if model._trained:
                 insights.append(ReflectionInsight(
-                    insight_id=f"learn_model_trained_{datetime.now(timezone.utc).strftime('%H%M%S')}",
+                    insight_id=f"learn_model_trained_{datetime.now(UTC).strftime('%H%M%S')}",
                     category="performance",
                     severity="info",
                     title="Recovery Model Trained",

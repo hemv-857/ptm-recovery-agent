@@ -11,7 +11,7 @@ from __future__ import annotations
 import itertools
 import os
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -78,7 +78,7 @@ def test_case_and_action_roundtrip(store):
 
     action = Intervention(
         action_id="act_1", case_id="case_1", action_type=ActionType.NUDGE_SMS,
-        scheduled_at=datetime.now(timezone.utc).isoformat(),
+        scheduled_at=datetime.now(UTC).isoformat(),
     )
     store.save_action(action)
     assert store.get_action_by_id("act_1").case_id == "case_1"
@@ -185,7 +185,7 @@ def test_supersede_and_promise(store):
         store.save_action(Intervention(
             action_id=f"act_s{i}", case_id="case_1", action_type=ActionType.NUDGE_SMS,
             status="scheduled",
-            scheduled_at=datetime.now(timezone.utc).isoformat(),
+            scheduled_at=datetime.now(UTC).isoformat(),
         ))
     store.supersede_scheduled("case_1")
     assert store.scheduled_actions() == []

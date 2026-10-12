@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import sys
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
@@ -37,7 +37,7 @@ def run_with_modifier(modifier: float, cfg: dict) -> dict:
 
     store = Store(Path(db_path))
     payments = generate_batch(
-        BATCH, datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc), seed=SEED
+        BATCH, datetime(2026, 8, 20, 6, 0, tzinfo=UTC), seed=SEED
     )
     run(payments, c, store)
     report = build_report(store.all_cases(), store.actions_rows(), c)

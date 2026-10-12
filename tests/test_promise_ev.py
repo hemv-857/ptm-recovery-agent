@@ -4,7 +4,7 @@ The selector scales candidate action EVs by the customer's cross-case
 promise track record (recovered-after-promise = kept, written-off-after-
 promise = broken). No history -> no adjustment (no phantom penalty).
 """
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import yaml
 
@@ -19,7 +19,7 @@ from app.selector import promise_ev_multiplier, select_next_action
 from app.store import Store
 
 CFG = yaml.safe_load(open("config.yaml"))
-NOW = datetime(2026, 9, 7, 12, 0, tzinfo=timezone.utc)  # Monday noon IST
+NOW = datetime(2026, 9, 7, 12, 0, tzinfo=UTC)  # Monday noon IST
 
 
 def _case(customer_id: str, payment_id: str) -> RecoveryCase:

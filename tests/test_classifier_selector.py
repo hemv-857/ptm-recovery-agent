@@ -1,3 +1,5 @@
+from datetime import UTC
+
 from app.classifier import classify
 from app.models import ActionType, Customer, FailureClass, Group, RecoveryCase
 from app.selector import _salary_aligned_slot, select_next_action
@@ -37,12 +39,12 @@ def test_salary_slot_with_empty_cycle_days():
     """SaaS template sets salary_cycle_days: [] — must fall back to next-morning,
     not crash."""
     import copy
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     import yaml
     cfg = yaml.safe_load(open("config.yaml"))
     cfg["retry"]["salary_cycle_days"] = []
-    now = datetime(2026, 8, 20, 14, 0, tzinfo=timezone.utc)
+    now = datetime(2026, 8, 20, 14, 0, tzinfo=UTC)
     slot = _salary_aligned_slot(cfg, now)
     assert slot > now and slot.hour == 10          # tomorrow 10:00 IST
     case = RecoveryCase(
@@ -73,7 +75,7 @@ def test_salary_slot_rolls_month():
 
 
 def test_hard_decline_never_auto_charges():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     import yaml
     cfg = yaml.safe_load(open("config.yaml"))
@@ -83,29 +85,29 @@ def test_hard_decline_never_auto_charges():
         method="card", failure_class=FailureClass.HARD_DECLINE, group=Group.TREATMENT,
         class_confidence=0.95,
     )
-    act = select_next_action(case, cfg, datetime.now(timezone.utc))
+    act = select_next_action(case, cfg, datetime.now(UTC))
     assert act.action_type.value.startswith("nudge")
 
 
 def _case(cls: FailureClass, attempts: int = 0) -> RecoveryCase:
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from app.models import Customer, Group, RecoveryCase
     case = RecoveryCase(
         payment_id="p2", customer=Customer(customer_id="c"), amount=100_000,
         method="emandate", failure_class=cls, group=Group.TREATMENT,
         class_confidence=0.9, loss_age_days=10,
-        attempt_times=[datetime.now(timezone.utc).isoformat()] * attempts,
+        attempt_times=[datetime.now(UTC).isoformat()] * attempts,
     )
     return case
 
 
 def test_invoice_ladder_escalates_to_human():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     import yaml
     cfg = yaml.safe_load(open("config.yaml"))
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     a0 = select_next_action(_case(FailureClass.INVOICE_OVERDUE), cfg, now)
     assert a0.action_type is ActionType.NUDGE_WHATSAPP
     a3 = select_next_action(_case(FailureClass.INVOICE_OVERDUE, attempts=3), cfg, now)
@@ -113,11 +115,11 @@ def test_invoice_ladder_escalates_to_human():
 
 
 def test_subscription_dunning_starts_with_charge_retry():
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     import yaml
     cfg = yaml.safe_load(open("config.yaml"))
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     a0 = select_next_action(
         _case(FailureClass.SUBSCRIPTION_FAILED, attempts=0).model_copy(
             update={"subscription_id": "sub_1"}), cfg, now)

@@ -10,7 +10,7 @@ from __future__ import annotations
 import hashlib
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from zoneinfo import ZoneInfo
 
 from app.models import ActionType, Group, RecoveryCase
@@ -18,7 +18,7 @@ from app.models import ActionType, Group, RecoveryCase
 IST = ZoneInfo("Asia/Kolkata")
 
 
-class Outcome(str, Enum):
+class Outcome(StrEnum):
     RECOVERED = "recovered"
     IGNORED = "ignored"
     OPTED_OUT = "opted_out"

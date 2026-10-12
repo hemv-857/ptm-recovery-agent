@@ -7,7 +7,7 @@ not prompt-shaped.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from .models import (
     ActionType,
@@ -21,7 +21,7 @@ from .policy import Decision, evaluate, revalidate
 from .selector import select_next_action
 from .store import Store
 
-FIXED_NOW = datetime(2026, 9, 3, 12, 0, 0, tzinfo=timezone.utc)
+FIXED_NOW = datetime(2026, 9, 3, 12, 0, 0, tzinfo=UTC)
 
 
 class AdversarialLLM:

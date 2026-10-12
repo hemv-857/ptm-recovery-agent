@@ -9,8 +9,8 @@ import uuid
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 
 import httpx
 
@@ -19,21 +19,21 @@ from .degradation import DegradationDetector
 from .store import Store
 
 
-class AlertSeverity(str, Enum):
+class AlertSeverity(StrEnum):
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
     EMERGENCY = "emergency"
 
 
-class AlertStatus(str, Enum):
+class AlertStatus(StrEnum):
     ACTIVE = "active"
     ACKNOWLEDGED = "acknowledged"
     RESOLVED = "resolved"
     SUPPRESSED = "suppressed"
 
 
-class MetricType(str, Enum):
+class MetricType(StrEnum):
     COUNTER = "counter"
     GAUGE = "gauge"
     HISTOGRAM = "histogram"
@@ -54,7 +54,7 @@ class AlertRule:
     cooldown_minutes: int = 30  # Min time between alerts
     labels: dict[str, str] = field(default_factory=dict)  # For routing
     enabled: bool = True
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 @dataclass
@@ -70,8 +70,8 @@ class Alert:
     annotations: dict[str, str] = field(default_factory=dict)
     value: float = 0.0
     threshold: float = 0.0
-    started_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    started_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     acknowledged_at: str | None = None
     acknowledged_by: str | None = None
     resolved_at: str | None = None
@@ -98,7 +98,7 @@ class MetricSnapshot:
     """Point-in-time metric value."""
     metric_name: str
     value: float
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     labels: dict[str, str] = field(default_factory=dict)
 
 
@@ -147,7 +147,7 @@ class MetricsCollector:
                  labels: dict[str, str] | None = None) -> float:
         """Calculate rate per minute over window."""
         with self._lock:
-            cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+            cutoff = datetime.now(UTC) - timedelta(minutes=window_minutes)
             cutoff_str = cutoff.isoformat()
             total = 0.0
             for snap in self._metrics.get(f"{metric_name}_inc", []):
@@ -159,7 +159,7 @@ class MetricsCollector:
                        window_minutes: int = 60, labels: dict[str, str] | None = None) -> float | None:
         """Get percentile of histogram values."""
         with self._lock:
-            cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
+            cutoff = datetime.now(UTC) - timedelta(minutes=window_minutes)
             cutoff_str = cutoff.isoformat()
             values = []
             for snap in self._metrics.get(f"{metric_name}_hist", []):
@@ -276,7 +276,7 @@ class AlertManager:
     def evaluate_rules(self) -> list[Alert]:
         """Evaluate all rules and fire/resolve alerts."""
         new_alerts = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         for rule in self._rules.values():
             if not rule.enabled:
@@ -358,7 +358,7 @@ class AlertManager:
         for alert in list(self._alerts.values()):
             if alert.rule_id == rule.rule_id and alert.status == AlertStatus.ACTIVE:
                 alert.status = AlertStatus.RESOLVED
-                alert.resolved_at = datetime.now(timezone.utc).isoformat()
+                alert.resolved_at = datetime.now(UTC).isoformat()
                 alert.resolved_by = "auto"
                 self._save_alert(alert)
                 # Send resolution notification
@@ -369,9 +369,9 @@ class AlertManager:
         if not alert or alert.status != AlertStatus.ACTIVE:
             return False
         alert.status = AlertStatus.ACKNOWLEDGED
-        alert.acknowledged_at = datetime.now(timezone.utc).isoformat()
+        alert.acknowledged_at = datetime.now(UTC).isoformat()
         alert.acknowledged_by = acknowledged_by
-        alert.updated_at = datetime.now(timezone.utc).isoformat()
+        alert.updated_at = datetime.now(UTC).isoformat()
         self._save_alert(alert)
         return True
 
@@ -380,9 +380,9 @@ class AlertManager:
         if not alert or alert.status not in (AlertStatus.ACTIVE, AlertStatus.ACKNOWLEDGED):
             return False
         alert.status = AlertStatus.RESOLVED
-        alert.resolved_at = datetime.now(timezone.utc).isoformat()
+        alert.resolved_at = datetime.now(UTC).isoformat()
         alert.resolved_by = resolved_by
-        alert.updated_at = datetime.now(timezone.utc).isoformat()
+        alert.updated_at = datetime.now(UTC).isoformat()
         self._save_alert(alert)
         self._send_notifications(alert, is_resolution=True)
         return True
@@ -469,7 +469,7 @@ class SystemMonitor:
 
         # Cost metrics
         actions = self.store.actions_rows()
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         today_actions = [a for a in actions if a.get("executed_at", "").startswith(today)]
         cost = sum(a.get("cost_paise", 0) for a in today_actions)
         self.metrics.gauge("cost.daily_spend_paise", cost)
@@ -541,7 +541,7 @@ class SystemMonitor:
             "warning_alerts": warning_alerts,
             "cusum_state": cusum_state,
             "degradation_state": degradation_state,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 
@@ -565,7 +565,7 @@ class NotificationChannels:
                         {"title": "Threshold", "value": f"{alert.threshold:.2f}", "short": True},
                     ],
                     "footer": "Paytm Recovery Agent",
-                    "ts": int(datetime.now(timezone.utc).timestamp()),
+                    "ts": int(datetime.now(UTC).timestamp()),
                 }]
             }
             httpx.post(webhook_url, json=payload, timeout=10)

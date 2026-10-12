@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from .models import FailureClass
@@ -28,7 +28,7 @@ class ContextualBanditState:
     """State for a specific context (merchant + failure_class)."""
     arms: dict[str, BanditArm] = field(default_factory=dict)
     total_pulls: int = 0
-    last_updated: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    last_updated: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
 
 class MerchantBandit:
@@ -94,7 +94,7 @@ class MerchantBandit:
                 "INSERT INTO merchant_bandit_state (context_key, state_json, updated_at) "
                 "VALUES (?,?,?) ON CONFLICT(context_key) DO UPDATE SET "
                 "state_json=excluded.state_json, updated_at=excluded.updated_at",
-                (context_key, json.dumps(data), datetime.now(timezone.utc).isoformat()),
+                (context_key, json.dumps(data), datetime.now(UTC).isoformat()),
             )
             self.store.conn.commit()
         except Exception:
@@ -148,9 +148,9 @@ class MerchantBandit:
         arm = state.arms[channel]
         arm.pulls += 1
         arm.rewards += reward
-        arm.last_pull = datetime.now(timezone.utc).isoformat()
+        arm.last_pull = datetime.now(UTC).isoformat()
         state.total_pulls += 1
-        state.last_updated = datetime.now(timezone.utc).isoformat()
+        state.last_updated = datetime.now(UTC).isoformat()
         self._save_to_store(self._context_key(merchant_id, failure_class))
 
     def get_stats(self, merchant_id: str, failure_class: FailureClass) -> dict[str, Any]:

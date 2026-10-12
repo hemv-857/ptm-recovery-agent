@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 from typing import Any
 
 from .agent_squad import AgentSquad
@@ -16,7 +16,7 @@ from .negotiation import get_negotiation_engine
 from .store import Store
 
 
-class CampaignStatus(str, Enum):
+class CampaignStatus(StrEnum):
     DRAFT = "draft"
     SCHEDULED = "scheduled"
     RUNNING = "running"
@@ -25,7 +25,7 @@ class CampaignStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class TargetingRule(str, Enum):
+class TargetingRule(StrEnum):
     FAILURE_CLASS = "failure_class"
     AMOUNT_TIER = "amount_tier"
     MERCHANT_SEGMENT = "merchant_segment"
@@ -68,8 +68,8 @@ class Campaign:
     schedule: dict[str, Any] = field(default_factory=dict)  # start_at, end_at, timezone, recurrence
     budget_paise: int = 0
     max_cases_per_day: int = 1000
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     started_at: str | None = None
     completed_at: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -82,7 +82,7 @@ class CampaignExecution:
     campaign_id: str = ""
     case_id: str = ""
     variant_id: str = ""
-    assigned_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    assigned_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     status: str = "assigned"  # assigned, in_progress, recovered, failed, skipped
     recovery_amount_paise: int = 0
     cost_paise: int = 0
@@ -214,7 +214,7 @@ class CampaignOrchestrator:
 
     # Campaign CRUD
     def create_campaign(self, campaign: Campaign) -> Campaign:
-        campaign.updated_at = datetime.now(timezone.utc).isoformat()
+        campaign.updated_at = datetime.now(UTC).isoformat()
         self._campaigns[campaign.campaign_id] = campaign
         self._save_campaign(campaign)
         return campaign
@@ -235,7 +235,7 @@ class CampaignOrchestrator:
         for key, value in updates.items():
             if hasattr(campaign, key):
                 setattr(campaign, key, value)
-        campaign.updated_at = datetime.now(timezone.utc).isoformat()
+        campaign.updated_at = datetime.now(UTC).isoformat()
         self._save_campaign(campaign)
         return campaign
 
@@ -256,8 +256,8 @@ class CampaignOrchestrator:
         if not campaign or campaign.status != CampaignStatus.SCHEDULED:
             return False
         campaign.status = CampaignStatus.RUNNING
-        campaign.started_at = datetime.now(timezone.utc).isoformat()
-        campaign.updated_at = datetime.now(timezone.utc).isoformat()
+        campaign.started_at = datetime.now(UTC).isoformat()
+        campaign.updated_at = datetime.now(UTC).isoformat()
         self._save_campaign(campaign)
         return True
 
@@ -266,7 +266,7 @@ class CampaignOrchestrator:
         if not campaign or campaign.status != CampaignStatus.RUNNING:
             return False
         campaign.status = CampaignStatus.PAUSED
-        campaign.updated_at = datetime.now(timezone.utc).isoformat()
+        campaign.updated_at = datetime.now(UTC).isoformat()
         self._save_campaign(campaign)
         return True
 
@@ -275,7 +275,7 @@ class CampaignOrchestrator:
         if not campaign or campaign.status != CampaignStatus.PAUSED:
             return False
         campaign.status = CampaignStatus.RUNNING
-        campaign.updated_at = datetime.now(timezone.utc).isoformat()
+        campaign.updated_at = datetime.now(UTC).isoformat()
         self._save_campaign(campaign)
         return True
 
@@ -284,8 +284,8 @@ class CampaignOrchestrator:
         if not campaign or campaign.status not in (CampaignStatus.RUNNING, CampaignStatus.PAUSED):
             return False
         campaign.status = CampaignStatus.COMPLETED
-        campaign.completed_at = datetime.now(timezone.utc).isoformat()
-        campaign.updated_at = datetime.now(timezone.utc).isoformat()
+        campaign.completed_at = datetime.now(UTC).isoformat()
+        campaign.updated_at = datetime.now(UTC).isoformat()
         self._save_campaign(campaign)
         return True
 
@@ -391,7 +391,7 @@ class CampaignOrchestrator:
 
         # Filter out already executed today
         executed_today = {e.case_id for e in self._executions.get(campaign_id, [])
-                            if e.assigned_at.startswith(datetime.now(timezone.utc).date().isoformat())}
+                            if e.assigned_at.startswith(datetime.now(UTC).date().isoformat())}
         candidates = [c for c in candidates if c.case_id not in executed_today]
 
         processed = 0
@@ -403,7 +403,7 @@ class CampaignOrchestrator:
                 campaign_id=campaign.campaign_id,
                 case_id=case.case_id,
                 variant_id=variant.variant_id,
-                assigned_at=datetime.now(timezone.utc).isoformat(),
+                assigned_at=datetime.now(UTC).isoformat(),
                 status="assigned",
             )
             self._save_execution(execution)
@@ -420,7 +420,7 @@ class CampaignOrchestrator:
         return {"status": "completed", "processed": processed, "campaign_id": campaign_id}
 
     def _get_today_execution_count(self, campaign_id: str) -> int:
-        today = datetime.now(timezone.utc).date().isoformat()
+        today = datetime.now(UTC).date().isoformat()
         executions = self._executions.get(campaign_id, [])
         return sum(1 for e in executions if e.assigned_at.startswith(today))
 
@@ -436,7 +436,7 @@ class CampaignOrchestrator:
         # For now, just log the assignment
         self.store.append_audit(type("AuditEvent", (), {
             "event_id": f"campaign_{uuid.uuid4().hex[:8]}",
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "actor": "campaign_orchestrator",
             "event_type": "campaign.case_assigned",
             "case_id": case.case_id,

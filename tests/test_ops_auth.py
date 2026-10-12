@@ -1,5 +1,6 @@
 """Operator-endpoint auth (AGENT_API_TOKEN) and tick due-filtering."""
 import os
+from datetime import UTC
 
 import pytest
 import yaml
@@ -69,7 +70,7 @@ def test_approve_and_opt_out_require_token_too(api):
 def test_tick_supersedes_stale_actions_of_closed_cases(api):
     """A recovered case's leftover scheduled action is cleaned up, not skipped forever."""
     client, _ = api
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     from app.models import (
         ActionType,
@@ -92,7 +93,7 @@ def test_tick_supersedes_stale_actions_of_closed_cases(api):
     store.upsert_case(case)
     stale = Intervention(
         case_id=case.case_id, action_type=ActionType.NUDGE_SMS,
-        scheduled_at=(datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
+        scheduled_at=(datetime.now(UTC) - timedelta(minutes=1)).isoformat(),
         reasoning={},
     )
     store.save_action(stale)

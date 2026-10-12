@@ -5,15 +5,15 @@ from __future__ import annotations
 import json
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 
 from .models import FailureClass, RecoveryCase
 from .store import Store
 
 
-class NegotiationStage(str, Enum):
+class NegotiationStage(StrEnum):
     """Stages in the negotiation lifecycle."""
     INITIAL = "initial"                    # First contact made
     OFFER_SENT = "offer_sent"              # Initial offer sent
@@ -27,7 +27,7 @@ class NegotiationStage(str, Enum):
     CLOSED = "closed"                      # Negotiation closed (recovered or written off)
 
 
-class OfferType(str, Enum):
+class OfferType(StrEnum):
     """Types of offers we can make."""
     FULL_PAYMENT = "full_payment"          # Pay full amount
     DISCOUNT = "discount"                  # Percentage discount
@@ -61,8 +61,8 @@ class NegotiationState:
     current_offer: Offer | None = None
     customer_responses: list[dict] = field(default_factory=list)
     promises: list[dict] = field(default_factory=list)
-    started_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    started_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -155,7 +155,7 @@ class NegotiationEngine:
                     original_amount_paise=base_amount,
                     installments=min(6, max(3, base_amount // 500000)),
                     installment_amount_paise=base_amount // min(6, max(3, base_amount // 500000)),
-                    deadline=(datetime.now(timezone.utc) + timedelta(days=7)).isoformat(),
+                    deadline=(datetime.now(UTC) + timedelta(days=7)).isoformat(),
                     conditions={"auto_approve": True},
                 )
             return Offer(
@@ -163,7 +163,7 @@ class NegotiationEngine:
                 amount_paise=int(base_amount * 0.95),
                 original_amount_paise=base_amount,
                 discount_pct=5,
-                deadline=(datetime.now(timezone.utc) + timedelta(days=5)).isoformat(),
+                deadline=(datetime.now(UTC) + timedelta(days=5)).isoformat(),
             )
 
         if case.failure_class == FailureClass.INSUFFICIENT_FUNDS:
@@ -173,7 +173,7 @@ class NegotiationEngine:
                 amount_paise=int(base_amount * 0.98),
                 original_amount_paise=base_amount,
                 discount_pct=2,
-                deadline=(datetime.now(timezone.utc) + timedelta(days=3)).isoformat(),
+                deadline=(datetime.now(UTC) + timedelta(days=3)).isoformat(),
                 conditions={"salary_aligned": True},
             )
 
@@ -192,7 +192,7 @@ class NegotiationEngine:
             amount_paise=int(base_amount * 0.97),
             original_amount_paise=base_amount,
             discount_pct=3,
-            deadline=(datetime.now(timezone.utc) + timedelta(days=5)).isoformat(),
+            deadline=(datetime.now(UTC) + timedelta(days=5)).isoformat(),
         )
 
     def send_offer(self, case: RecoveryCase, offer: Offer, channel: str = "whatsapp") -> dict:
@@ -201,13 +201,13 @@ class NegotiationEngine:
         state.offers.append(offer)
         state.current_offer = offer
         state.stage = NegotiationStage.OFFER_SENT
-        state.updated_at = datetime.now(timezone.utc).isoformat()
+        state.updated_at = datetime.now(UTC).isoformat()
         self._save_negotiation(state)
 
         # Log audit event
         self.store.append_audit(type("AuditEvent", (), {
             "event_id": f"neg_{offer.offer_id}",
-            "ts": datetime.now(timezone.utc).isoformat(),
+            "ts": datetime.now(UTC).isoformat(),
             "actor": "negotiator",
             "event_type": "offer.sent",
             "case_id": case.case_id,
@@ -225,9 +225,9 @@ class NegotiationEngine:
     def process_customer_response(self, case: RecoveryCase, response: dict) -> dict:
         """Process customer response to an offer."""
         state = self.get_or_create_state(case)
-        response["timestamp"] = datetime.now(timezone.utc).isoformat()
+        response["timestamp"] = datetime.now(UTC).isoformat()
         state.customer_responses.append(response)
-        state.updated_at = datetime.now(timezone.utc).isoformat()
+        state.updated_at = datetime.now(UTC).isoformat()
 
         response_type = response.get("type", "unknown")
 
@@ -247,7 +247,7 @@ class NegotiationEngine:
 
     def _handle_accept(self, state: NegotiationState, response: dict) -> dict:
         state.stage = NegotiationStage.AGREED
-        state.updated_at = datetime.now(timezone.utc).isoformat()
+        state.updated_at = datetime.now(UTC).isoformat()
         self._save_negotiation(state)
         return {"status": "accepted", "next_step": "payment_collection", "offer": state.current_offer.__dict__ if state.current_offer else None}
 
@@ -260,7 +260,7 @@ class NegotiationEngine:
             return {"status": "invalid_counter", "message": "No amount specified"}
 
         state.stage = NegotiationStage.COUNTER_RECEIVED
-        state.updated_at = datetime.now(timezone.utc).isoformat()
+        state.updated_at = datetime.now(UTC).isoformat()
 
         # Evaluate counter-offer
         evaluation = self._evaluate_counter(state, counter_amount, counter_type)
@@ -329,7 +329,7 @@ class NegotiationEngine:
             amount_paise=final_amount,
             original_amount_paise=original,
             discount_pct=discount_pct,
-            deadline=(datetime.now(timezone.utc) + timedelta(days=3)).isoformat(),
+            deadline=(datetime.now(UTC) + timedelta(days=3)).isoformat(),
             metadata={"is_counter_counter": True, "customer_counter": customer_amount},
         )
 
@@ -342,14 +342,14 @@ class NegotiationEngine:
             return {"status": "invalid_promise", "message": "No promise date"}
 
         promise = {
-            "promised_at": datetime.now(timezone.utc).isoformat(),
+            "promised_at": datetime.now(UTC).isoformat(),
             "promise_date": promise_date,
             "promised_amount": promise_amount,
             "status": "pending",
         }
         state.promises.append(promise)
         state.stage = NegotiationStage.PROMISE_MADE
-        state.updated_at = datetime.now(timezone.utc).isoformat()
+        state.updated_at = datetime.now(UTC).isoformat()
         self._save_negotiation(state)
 
         # Schedule promise check
@@ -357,7 +357,7 @@ class NegotiationEngine:
 
     def _handle_reject(self, state: NegotiationState, response: dict) -> dict:
         state.stage = NegotiationStage.ESCALATED
-        state.updated_at = datetime.now(timezone.utc).isoformat()
+        state.updated_at = datetime.now(UTC).isoformat()
         self._save_negotiation(state)
 
         # Trigger escalation
@@ -378,7 +378,7 @@ class NegotiationEngine:
             return {"status": latest_promise["status"]}
 
         promise_date = datetime.fromisoformat(latest_promise["promise_date"].replace('Z', '+00:00'))
-        if datetime.now(timezone.utc) > promise_date + timedelta(hours=6):  # Grace period
+        if datetime.now(UTC) > promise_date + timedelta(hours=6):  # Grace period
             latest_promise["status"] = "broken"
             state.stage = NegotiationStage.PROMISE_BROKEN
             self._save_negotiation(state)

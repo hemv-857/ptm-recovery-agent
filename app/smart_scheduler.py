@@ -6,22 +6,22 @@ import json
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 
 from .models import RecoveryCase
 from .store import Store
 
 
-class ContactChannel(str, Enum):
+class ContactChannel(StrEnum):
     WHATSAPP = "whatsapp"
     SMS = "sms"
     EMAIL = "email"
     VOICE = "voice"
 
 
-class ResponseType(str, Enum):
+class ResponseType(StrEnum):
     POSITIVE = "positive"      # Paid, promised, engaged
     NEUTRAL = "neutral"        # Opened, clicked, no action
     NEGATIVE = "negative"      # Opted out, complained, ignored
@@ -35,7 +35,7 @@ class ContactAttempt:
     case_id: str = ""
     customer_id: str = ""
     channel: ContactChannel = ContactChannel.WHATSAPP
-    sent_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    sent_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     scheduled_for: str = ""
     response_type: ResponseType = ResponseType.NO_RESPONSE
     responded_at: str | None = None
@@ -61,7 +61,7 @@ class CustomerPreferenceProfile:
     successful_contacts: int = 0
     last_contact_at: str | None = None
     last_response_at: str | None = None
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -250,7 +250,7 @@ class SmartScheduler:
                            failure_class: str = "") -> ScheduleRecommendation:
         """Get optimal contact recommendation for a customer."""
         profile = self._get_or_create_profile(customer_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Determine best channel
         recommended_channel = self._select_best_channel(profile, failure_class)
@@ -355,7 +355,7 @@ class SmartScheduler:
     def should_contact_now(self, customer_id: str, failure_class: str = "") -> tuple[bool, str]:
         """Check if we should contact this customer now based on preferences."""
         profile = self._get_or_create_profile(customer_id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Check frequency limit
         if profile.last_contact_at:

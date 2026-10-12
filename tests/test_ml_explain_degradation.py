@@ -1,7 +1,7 @@
 """Tests for recovery model, explainability, and degradation detector."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from app.degradation import DegradationDetector, DegradationState
@@ -22,7 +22,7 @@ from app.recovery_model import (
 
 IST = ZoneInfo("Asia/Kolkata")
 
-FIXED_NOW = datetime(2026, 8, 15, 14, 0, tzinfo=timezone.utc)
+FIXED_NOW = datetime(2026, 8, 15, 14, 0, tzinfo=UTC)
 
 
 def _make_case(

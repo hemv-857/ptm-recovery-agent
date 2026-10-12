@@ -1,6 +1,6 @@
 """Smart Payment Plan Recovery (SPR): installment offers, collection loop,
 partial-recovery measurement semantics, and flag-off canonical behavior."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import yaml
 
@@ -26,7 +26,7 @@ from simulate.batch_generator import assign_groups, generate_batch
 from simulate.engine import run
 from simulate.world import Outcome, WorldModel
 
-NOW = datetime(2026, 9, 7, 12, 0, tzinfo=timezone.utc)
+NOW = datetime(2026, 9, 7, 12, 0, tzinfo=UTC)
 CFG = yaml.safe_load(open("config.yaml"))
 
 
@@ -207,7 +207,7 @@ def test_partial_recovery_counts_money_but_not_rate(tmp_path):
 
 def test_engine_runs_spr_end_to_end(tmp_path):
     cfg = _spr_cfg()
-    start = datetime(2026, 8, 20, 6, 0, tzinfo=timezone.utc)
+    start = datetime(2026, 8, 20, 6, 0, tzinfo=UTC)
     payments = generate_batch(150, start, seed=42)
     assign_groups(payments)
     store = Store(tmp_path / "e.db")

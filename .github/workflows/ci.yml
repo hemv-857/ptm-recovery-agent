@@ -10,7 +10,7 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
@@ -18,7 +18,7 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Lint
         run: |
-          pip install ruff
+          pip install 'ruff==0.17.0'
           ruff check .
       - name: Offline batch smoke (500 cases)
         run: |

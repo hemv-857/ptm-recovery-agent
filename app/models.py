@@ -4,21 +4,21 @@ from __future__ import annotations
 import enum
 import hashlib
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from pydantic import BaseModel, Field, model_validator
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def new_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:12]}"
 
 
-class FailureClass(str, enum.Enum):
+class FailureClass(enum.StrEnum):
     INSUFFICIENT_FUNDS = "INSUFFICIENT_FUNDS"
     NETWORK_TIMEOUT = "NETWORK_TIMEOUT"
     ISSUER_UNAVAILABLE = "ISSUER_UNAVAILABLE"
@@ -45,19 +45,19 @@ class FailureClass(str, enum.Enum):
     GATEWAY_LATENCY = "GATEWAY_LATENCY"
 
 
-class CaseStatus(str, enum.Enum):
+class CaseStatus(enum.StrEnum):
     OPEN = "open"
     SCHEDULED = "scheduled"
     RECOVERED = "recovered"
     WRITTEN_OFF = "written_off"
 
 
-class Group(str, enum.Enum):
+class Group(enum.StrEnum):
     TREATMENT = "treatment"
     CONTROL = "control"
 
 
-class ActionType(str, enum.Enum):
+class ActionType(enum.StrEnum):
     RETRY_PAYMENT_LINK = "retry_payment_link"
     CREATE_PAYMENT_LINK = "create_payment_link"    # Alias for RETRY_PAYMENT_LINK
     RETRY_CHARGE = "retry_charge"
@@ -72,7 +72,7 @@ class ActionType(str, enum.Enum):
     CHECK_PROMISE = "check_promise"        # internal: promise-to-pay follow-up
 
 
-class ActionStatus(str, enum.Enum):
+class ActionStatus(enum.StrEnum):
     SCHEDULED = "scheduled"
     EXECUTED = "executed"
     DEFERRED = "deferred"
@@ -80,7 +80,7 @@ class ActionStatus(str, enum.Enum):
     SUPERSEDED = "superseded"
 
 
-class Decision(str, enum.Enum):
+class Decision(enum.StrEnum):
     EXECUTE = "execute"
     DEFER = "defer"
     BLOCK = "block"

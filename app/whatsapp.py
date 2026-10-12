@@ -5,10 +5,10 @@ Real-time preview of exact WhatsApp message + 1-click paytm link.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 
-class WhatsAppTemplate(str, Enum):
+class WhatsAppTemplate(StrEnum):
     """Pre-approved WhatsApp template categories."""
     RECOVERY_NUDGE = "recovery_nudge"
     PAYMENT_LINK = "payment_link"

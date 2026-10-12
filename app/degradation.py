@@ -8,16 +8,16 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
 from typing import Any
 
 from .models import RecoveryCase
 
-UTC = timezone.utc
+UTC = UTC
 
 
-class DegradationState(str, Enum):
+class DegradationState(StrEnum):
     HEALTHY = "HEALTHY"
     WATCH = "WATCH"
     CONFIRMED = "CONFIRMED"
