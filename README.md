@@ -442,6 +442,10 @@ Sibling recovery agents with the same control-group lift methodology, different 
 | [rzp-recovery-agent](https://github.com/hemv-857/rzp-recovery-agent) | Razorpay |
 | [ptm-recovery-agent](https://github.com/hemv-857/ptm-recovery-agent) | Paytm |
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 [LICENSE](https://github.com/hemv-857/ptm-recovery-agent/blob/master/LICENSE) — see the file for the full text.
