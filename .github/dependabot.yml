@@ -1,11 +1,29 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "weekly"
+- package-ecosystem: npm
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    minor-and-patch: &id001
+      patterns:
+      - '*'
+      update-types:
+      - minor
+      - patch
+    actions-and-tooling: &id002
+      patterns:
+      - actions/*
+      - docker/*
+      - codecov/*
+      - oven-sh/*
+      - github/*
+- package-ecosystem: github-actions
+  directory: /
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 5
+  groups:
+    minor-and-patch: *id001
+    actions-and-tooling: *id002
