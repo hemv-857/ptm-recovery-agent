@@ -1,29 +1,30 @@
+# Regenerated from the lockfiles actually present in the tree.
+#
+# The previous config declared an npm (and in three cases a 'bun') ecosystem on
+# Python/Rust repos that have no package.json. Every Dependabot run failed from
+# the first attempt, so CI stayed permanently red and no dependency PR could
+# ever be merged. Updates are grouped so a weekly run is mergeable in one action.
 version: 2
 updates:
-- package-ecosystem: npm
-  directory: /
-  schedule:
-    interval: weekly
-  open-pull-requests-limit: 5
-  groups:
-    minor-and-patch: &id001
-      patterns:
-      - '*'
-      update-types:
-      - minor
-      - patch
-    actions-and-tooling: &id002
-      patterns:
-      - actions/*
-      - docker/*
-      - codecov/*
-      - oven-sh/*
-      - github/*
-- package-ecosystem: github-actions
-  directory: /
-  schedule:
-    interval: weekly
-  open-pull-requests-limit: 5
-  groups:
-    minor-and-patch: *id001
-    actions-and-tooling: *id002
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-and-tooling:
+        patterns: ["actions/*", "docker/*", "codecov/*", "oven-sh/*", "github/*"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      actions-and-tooling:
+        patterns: ["actions/*", "docker/*", "codecov/*", "oven-sh/*", "github/*"]
