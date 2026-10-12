@@ -1,5 +1,7 @@
 # Paytm Revenue Recovery Agent
 
+<a href="https://github.com/hemv-857/ptm-recovery-agent/actions/workflows/ci.yml"><img src="https://github.com/hemv-857/ptm-recovery-agent/actions/workflows/ci.yml/badge.svg" alt="ptm-recovery-agent CI"></a> <a href="https://github.com/hemv-857/ptm-recovery-agent/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a> <img src="https://img.shields.io/badge/Python-3776AB.svg" alt="Python">
+
 **Build for India — AI-Powered Paytm Recovery.**
 
 > **Built as a concept for the Paytm Hackathon. Not an official Paytm product.**
@@ -439,3 +441,7 @@ Sibling recovery agents with the same control-group lift methodology, different 
 |------|-----------|
 | [rzp-recovery-agent](https://github.com/hemv-857/rzp-recovery-agent) | Razorpay |
 | [ptm-recovery-agent](https://github.com/hemv-857/ptm-recovery-agent) | Paytm |
+
+## License
+
+[LICENSE](https://github.com/hemv-857/ptm-recovery-agent/blob/master/LICENSE) — see the file for the full text.
